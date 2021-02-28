@@ -55,5 +55,8 @@
         width: 100%;
         height: 100%;
         fill: var(--type-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 </style>

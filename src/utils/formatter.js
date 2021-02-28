@@ -6,5 +6,10 @@ function kebabToSpace(text) {
     return text.replace('-', ' ');
 }
 
+function clearLinebreaks(text) {
+    console.log(text)
+    return text.replace(/\r?\n|\r|\f/g, ' ');
+}
 
-module.exports = { capitalize, kebabToSpace };
+
+module.exports = { capitalize, kebabToSpace, clearLinebreaks };

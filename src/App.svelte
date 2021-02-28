@@ -6,6 +6,19 @@
 	import PokeList from "./routes/pokeList.svelte";
 	import Details from "./routes/details.svelte";
 
+	// async function installServiceWorkerAsync() {
+	// 	if ("serviceWorker" in navigator) {
+	// 		try {
+	// 			let serviceWorker = await navigator.serviceWorker.register(
+	// 				"./sw.js"
+	// 			);
+	// 			console.log(serviceWorker);
+	// 		} catch (err) {
+	// 			console.error(`Failed to register service worker: ${err}`);
+	// 		}
+	// 	}
+	// }
+
 	const routes = {
 		"/": PokeList,
 		"/pokemon/:id": wrap({
@@ -13,6 +26,8 @@
 			props: {},
 		}),
 	};
+
+	// installServiceWorkerAsync();
 </script>
 
 <main>
