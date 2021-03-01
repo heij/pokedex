@@ -158,8 +158,6 @@
             pokemon = victini;
             species = victiniSpecies;
 
-            console.log({ species });
-
             nationalId = getNationalId(species);
             stats = getStats(pokemon);
             abilities = getAbilities(pokemon);
@@ -180,141 +178,154 @@
     {#await loadData()}
         <p>...</p>
     {:then p}
-        <div class="header">
-            <div class="line">
-                <h2 class="name">{pokemon.name.toUpperCase()}</h2>
-                <p class="id">{nationalId}</p>
-                <div class="types">
-                    {#each types as type}
-                        <div class="type-tag {type}">
-                            <div class="icon">
-                                <TypeIcon {type} />
+        <div class="panel">
+            <div class="header">
+                <div class="line" style="margin-bottom: 10px;">
+                    <div class="types">
+                        {#each types as type}
+                            <div class="type-tag {type}">
+                                <div class="icon">
+                                    <TypeIcon {type} />
+                                </div>
+                                <h4
+                                    class="type-name"
+                                    style="color: {typeColors[type]}"
+                                >
+                                    {type.toUpperCase()}
+                                </h4>
                             </div>
-                            <h4
-                                class="type-name"
-                                style="color: {typeColors[type]}"
-                            >
-                                {type.toUpperCase()}
-                            </h4>
+                        {/each}
+                    </div>
+                </div>
+                <div class="line">
+                    <h2 class="name">{pokemon.name.toUpperCase()}</h2>
+                    <p class="id">{nationalId}</p>
+                </div>
+                <div>
+                    <h4 class="genus">{genus}</h4>
+                </div>
+            </div>
+
+            <div class="img-wrapper">
+                <img src="assets/victini_md.png" alt="" />
+                <div class="metrics">
+                    <div class="center-content metric">
+                        {(pokemon.height * 0.1).toFixed(2)}m
+                    </div>
+                    <div class="center-content metric">
+                        {(pokemon.weight * 0.1).toFixed(2)}kg
+                    </div>
+                </div>
+            </div>
+
+            <div class="flavor-text">
+                {#if species}
+                    <p>
+                        {clearLinebreaks(getFlavorText(species, flavorVersion))}
+                    </p>
+                    <select name="" id="" bind:value={flavorVersion}>
+                        {#each getFlavorVersions(species) as { version }}
+                            <option value={version.name}>
+                                {capitalize(kebabToSpace(version.name))}
+                            </option>
+                        {/each}
+                    </select>
+                {/if}
+            </div>
+
+            <div
+                class="gender"
+                class:genderless={femaleRatio < 0}
+                class:female-only={femaleRatio === 1}
+                class:male-only={femaleRatio === 0}
+                style="--female-ratio: {femaleRatio}"
+            >
+                <span class="bar" />
+                <p class="gender-tag text-male">
+                    {(1 - femaleRatio) * 100}% MALE
+                </p>
+                <p class="gender-tag text-genderless">GENDERLESS</p>
+                <p class="gender-tag text-female">
+                    {femaleRatio * 100}% FEMALE
+                </p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="abilities">
+                <h3>ABILITIES</h3>
+                <div class="abilities-body">
+                    {#each abilities as ability}
+                        <div class="ability">
+                            {kebabToSpace(ability.name).toUpperCase()}
                         </div>
                     {/each}
                 </div>
             </div>
-            <div>
-                <h4 class="genus">{genus}</h4>
+
+            <div class="stats">
+                <h3>STATS</h3>
+                <div class="stats-body">
+                    {#each Object.entries(stats) as [stat, value]}
+                        <label for={stat}
+                            >{kebabToSpace(stat).toUpperCase()}</label
+                        >
+                        <span
+                            class="bar {stat} {getStatCategory(value)}"
+                            style="--current: {getStatProgress(value)}"
+                        />
+                        <p class="value">{value}</p>
+                    {/each}
+                </div>
             </div>
-        </div>
 
-        <div class="img-wrapper">
-            <img src="assets/victini_md.png" alt="" />
-        </div>
-
-        <div class="flavor-text">
-            {#if species}
-                <p>
-                    {clearLinebreaks(getFlavorText(species, flavorVersion))}
-                </p>
-                <select name="" id="" bind:value={flavorVersion}>
-                    {#each getFlavorVersions(species) as { version }}
-                        <option value={version.name}>
-                            {capitalize(kebabToSpace(version.name))}
+            <div class="moves">
+                <select name="" id="" bind:value={movesetVersion}>
+                    {#each getMovesetVersions(pokemon) as version}
+                        <option value={version}>
+                            {versionGroupNames[version]}
                         </option>
                     {/each}
                 </select>
-            {/if}
-        </div>
-
-        <div class="line">
-            <p class="metric">{(pokemon.height * 0.1).toFixed(2)}m</p>
-            <p class="metric">{(pokemon.weight * 0.1).toFixed(2)}kg</p>
-        </div>
-
-        <div
-            class="gender"
-            class:genderless={femaleRatio < 0}
-            class:female-only={femaleRatio === 1}
-            class:male-only={femaleRatio === 0}
-            style="--female-ratio: {femaleRatio}"
-        >
-            <span class="bar" />
-            <p class="gender-tag text-male">
-                {(1 - femaleRatio) * 100}% MALE
-            </p>
-            <p class="gender-tag text-genderless">GENDERLESS</p>
-            <p class="gender-tag text-female">
-                {femaleRatio * 100}% FEMALE
-            </p>
-        </div>
-
-        <div class="stats">
-            <h3>STATS</h3>
-            <div class="stats-body">
-                {#each Object.entries(stats) as [stat, value]}
-                    <label for={stat}>{kebabToSpace(stat).toUpperCase()}</label>
-                    <span
-                        class="bar {stat} {getStatCategory(value)}"
-                        style="--current: {getStatProgress(value)}"
-                    />
-                    <p class="value">{value}</p>
-                {/each}
-            </div>
-        </div>
-
-        <div class="abilities">
-            <h3>ABILITIES</h3>
-            <div class="abilities-body">
-                {#each abilities as ability}
-                    <div class="ability">
-                        {kebabToSpace(ability.name).toUpperCase()}
-                    </div>
-                {/each}
-            </div>
-        </div>
-
-        <div class="moves">
-            <select name="" id="" bind:value={movesetVersion}>
-                {#each getMovesetVersions(pokemon) as version}
-                    <option value={version}>
-                        {versionGroupNames[version]}
-                    </option>
-                {/each}
-            </select>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Category</th>
-                            <th>Power</th>
-                            <th>PP</th>
-                            <th>Accuracy</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each Object.entries(sortMovesetByLearnMethod(movesets["black-2-white-2"])) as [method, moveset]}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
                             <tr>
-                                <td colspan="7" class="learn_method"
-                                    >{capitalize(kebabToSpace(method))}</td
-                                >
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Power</th>
+                                <th>PP</th>
+                                <th>Accuracy</th>
+                                <th>Description</th>
                             </tr>
-                            {#each moveset as { move }}
+                        </thead>
+                        <tbody>
+                            {#each Object.entries(sortMovesetByLearnMethod(movesets["black-2-white-2"])) as [method, moveset]}
                                 <tr>
-                                    <td
-                                        >{capitalize(
-                                            kebabToSpace(move.name)
-                                        )}</td
+                                    <td colspan="7" class="learn_method"
+                                        >{capitalize(kebabToSpace(method))}</td
                                     >
                                 </tr>
+                                {#each moveset as { move }}
+                                    <tr>
+                                        <td
+                                            >{capitalize(
+                                                kebabToSpace(move.name)
+                                            )}</td
+                                        >
+                                    </tr>
+                                {/each}
                             {/each}
-                        {/each}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <div class="evolution-chain" />
         </div>
 
-        <div class="evolution-chain" />
+        <div class="panel" />
     {/await}
 </div>
 
@@ -322,7 +333,19 @@
     .details {
         position: relative;
         min-height: 100%;
-        margin: 25px 200px;
+        // margin: 25px 200px;
+        margin: 20px;
+
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .panel {
+        &:nth-child(1) {
+            max-width: 500px;
+        }
     }
 
     .line {
@@ -357,15 +380,20 @@
     .types {
         $icon-size: 30px;
 
-        display: inline-flex;
-        margin-left: auto;
+        // display: inline-flex;
+        display: flex;
+        flex: 1;
+        // margin-left: auto;
+        // margin-bottom: 10px;
 
         .type-tag {
             position: relative;
             display: inline-flex;
             clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-            padding: 0 10px 0 0;
+            // padding: 0 10px 0 0;
             background: rgba(16, 16, 16, 0.5);
+            flex: 1;
+            justify-content: flex-end;
 
             .icon {
                 position: relative;
@@ -394,23 +422,50 @@
             }
 
             &:nth-child(1) {
-                transform: translate(10px, 0);
+                // transform: translate(10px, 0);
+                padding-right: 15px;
             }
 
             &:nth-child(2) {
                 flex-direction: row-reverse;
 
                 clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
-                padding: 0 0 0 10px;
-                transform: translate(0, 5px);
+                padding-left: 15px;
+                // padding: 0 0 0 10px;
+                // transform: translate(0, 5px);
 
                 .type-name {
-                    padding: 0 0 0 5px;
+                    // padding: 0 0 0 10px;
                     // margin-right: calc(-2 * #{$icon-size} / 3);
                     // margin-left: -10px;
                     // padding: 5px calc(2 * #{$icon-size} / 3) 5px 5px;
                 }
             }
+        }
+    }
+
+    .metrics {
+        display: flex;
+        flex-direction: column;
+        margin: 0 0 0 5px;
+        .metric {
+            height: 100%;
+            color: #fff;
+            padding: 5px;
+            margin: 0 5px;
+            background: #775e5e;
+            // clip-path: polygon(10px 0, calc(100% - 10px));
+        }
+    }
+
+    .flavor-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-bottom: 10px;
+
+        select {
+            margin-top: 10px;
         }
     }
 
