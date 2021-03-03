@@ -2,8 +2,6 @@
     export let pokemon;
     export let params = {};
 
-    import victini from "../resources/victini.json";
-    import victiniSpecies from "../resources/victiniSpecies.json";
     import {
         capitalize,
         kebabToSpace,
@@ -13,6 +11,9 @@
     import TypeIcon from "../components/typeIcon.svelte";
     import typeColors from "../data/typeColors.json";
     import versionGroupNames from "../data/versionGroupNames.json";
+    import statLabels from "../data/statLabels.json";
+    import { tweened } from "svelte/motion";
+    import { cubicOut, expoOut } from "svelte/easing";
 
     function getNationalId(species) {
         let id = species.pokedex_numbers
@@ -32,9 +33,13 @@
     }
 
     function getFlavorText(species, version) {
-        return species.flavor_text_entries.find(
-            (s) => s.language.name == "en" && s.version.name == version
-        )?.flavor_text;
+        if (!version || !species) return "";
+
+        return clearLinebreaks(
+            species.flavor_text_entries.find(
+                (s) => s.language.name == "en" && s.version.name == version
+            )?.flavor_text
+        );
     }
 
     function getStats(pokemon) {
@@ -45,21 +50,27 @@
         }, {});
     }
 
-    let categories = ["hyper", "high", "medium", "low"];
+    let statCategories = ["hyper", "high", "medium", "low"];
     function getStatCategory(stat) {
         let index = [150, 120, 90, 0].findIndex((t) => stat >= t);
-        return categories[index];
+        return statCategories[index];
     }
 
     function getStatProgress(stat) {
-        return Math.min(stat / 200, 1);
+        let maximumValue = 512;
+        return Math.min(stat / maximumValue, 1);
+    }
+
+    function getStatBarProgress(stat) {
+        let maximumValue = 200;
+        return Math.min(stat / maximumValue, 1);
     }
 
     function getAbilities(pokemon) {
         return pokemon.abilities.map((a) => {
             return {
                 name: a.ability.name,
-                hidden: a.is_hidden,
+                is_hidden: a.is_hidden,
             };
         });
     }
@@ -109,7 +120,6 @@
     }
 
     function getMovesetLearnMethods(moves) {
-        console.log(moves);
         return moves.reduce((res, m) => {
             let method = m.version.move_learn_method.name;
             if (!res.includes(method)) {
@@ -121,6 +131,8 @@
     }
 
     function sortMovesetByLearnMethod(moves) {
+        if (!moves) return {};
+
         return moves.reduce((res, m) => {
             let method = m.version.move_learn_method.name;
 
@@ -136,38 +148,60 @@
 
     pokemon = null;
     let species;
-    let nationalId;
-    let stats;
-    let abilities;
-    let types;
-    let genus;
-    let flavors;
-    let flavorVersion;
-    let flavorText;
-    let movesetVersion;
-    let movesets;
-    let femaleRatio;
+
+    let nationalId = 0;
+    let stats = tweened(
+        {
+            hp: 0,
+            attack: 0,
+            defense: 0,
+            "special-attack": 0,
+            "special-defense": 0,
+            speed: 0,
+        },
+        {
+            duration: 1000,
+            easing: expoOut,
+        }
+    );
+
+    let abilities = [];
+    let types = [];
+    let genus = "";
+    let flavorsTexts = [];
+    let currentFlavorVersion = "";
+    let currentFlavorText = "";
+    let movesetVersions = [];
+    let currentMovesetVersion = "";
+    let currentMoveset = "";
+    let movesets = {};
+    let femaleRatio = -1;
+    let sprite = "";
+
+    $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
+    $: currentMoveset = Object.entries(
+        sortMovesetByLearnMethod(movesets[currentMovesetVersion])
+    );
 
     function loadData() {
         return new Promise(async (resolve, reject) => {
-            // [pokemon, species] = await Promise.all([
-            //     getPokemon(params.id),
-            //     getSpecies(params.id),
-            // ]);
-
-            pokemon = victini;
-            species = victiniSpecies;
+            [pokemon, species] = await Promise.all([
+                getPokemon(params.id),
+                getSpecies(params.id),
+            ]);
 
             nationalId = getNationalId(species);
-            stats = getStats(pokemon);
             abilities = getAbilities(pokemon);
             types = getTypes(pokemon);
             genus = getGenus(species);
-            flavors = getFlavorVersions(species);
-            flavorVersion = flavors[0].version.name;
-            movesetVersion;
+            flavorsTexts = getFlavorVersions(species);
+            currentFlavorVersion = flavorsTexts[0].version.name;
             movesets = sortMovesetByVersions(pokemon);
+            movesetVersions = getMovesetVersions(pokemon);
+            currentMovesetVersion = movesetVersions[0];
             femaleRatio = getFemaleRatio(species);
+            sprite = pokemon.sprites.other["official-artwork"].front_default;
+            stats.set(getStats(pokemon));
 
             resolve();
         });
@@ -179,108 +213,104 @@
         <p>...</p>
     {:then p}
         <div class="panel">
-            <div class="header">
-                <div class="line" style="margin-bottom: 10px;">
-                    <div class="types">
-                        {#each types as type}
-                            <div class="type-tag {type}">
-                                <div class="icon">
-                                    <TypeIcon {type} />
-                                </div>
-                                <h4
-                                    class="type-name"
-                                    style="color: {typeColors[type]}"
-                                >
-                                    {type.toUpperCase()}
-                                </h4>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-                <div class="line">
-                    <h2 class="name">{pokemon.name.toUpperCase()}</h2>
-                    <p class="id">{nationalId}</p>
-                </div>
-                <div>
-                    <h4 class="genus">{genus}</h4>
-                </div>
+            <div class="id section">
+                <p class="national-id">{nationalId}</p>
+                <h2 class="name">{pokemon.name.toUpperCase()}</h2>
+                <h4 class="genus">{genus}</h4>
             </div>
 
-            <div class="img-wrapper">
-                <img src="assets/victini_md.png" alt="" />
-                <div class="metrics">
-                    <div class="center-content metric">
-                        {(pokemon.height * 0.1).toFixed(2)}m
-                    </div>
-                    <div class="center-content metric">
-                        {(pokemon.weight * 0.1).toFixed(2)}kg
-                    </div>
-                </div>
-            </div>
-
-            <div class="flavor-text">
-                {#if species}
-                    <p>
-                        {clearLinebreaks(getFlavorText(species, flavorVersion))}
-                    </p>
-                    <select name="" id="" bind:value={flavorVersion}>
-                        {#each getFlavorVersions(species) as { version }}
-                            <option value={version.name}>
-                                {capitalize(kebabToSpace(version.name))}
-                            </option>
-                        {/each}
-                    </select>
-                {/if}
+            <div class="img-wrapper section">
+                <img src={sprite} alt="" />
             </div>
 
             <div
-                class="gender"
-                class:genderless={femaleRatio < 0}
-                class:female-only={femaleRatio === 1}
-                class:male-only={femaleRatio === 0}
-                style="--female-ratio: {femaleRatio}"
+                class="types section"
+                class:single={types.length == 1}
+                class:double={types.length == 2}
             >
-                <span class="bar" />
-                <p class="gender-tag text-male">
-                    {(1 - femaleRatio) * 100}% MALE
-                </p>
-                <p class="gender-tag text-genderless">GENDERLESS</p>
-                <p class="gender-tag text-female">
-                    {femaleRatio * 100}% FEMALE
-                </p>
+                {#each types as type}
+                    <div class="type-tag {type}">
+                        <div class="icon">
+                            <TypeIcon {type} />
+                        </div>
+                        <h4 class="type-name" style="color: {typeColors[type]}">
+                            {type.toUpperCase()}
+                        </h4>
+                    </div>
+                {/each}
+            </div>
+
+            <div class="metrics section">
+                <div class="center-content metric height">
+                    <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
+                </div>
+                <div class="center-content metric weight">
+                    <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
+                </div>
             </div>
         </div>
 
         <div class="panel">
-            <div class="abilities">
-                <h3>ABILITIES</h3>
+            <div class="abilities section">
+                <h3 class="title">ABILITIES</h3>
                 <div class="abilities-body">
                     {#each abilities as ability}
-                        <div class="ability">
+                        <div
+                            class="ability center-content"
+                            class:hidden={ability.is_hidden}
+                        >
                             {kebabToSpace(ability.name).toUpperCase()}
                         </div>
                     {/each}
                 </div>
             </div>
 
-            <div class="stats">
-                <h3>STATS</h3>
+            <div class="stats section">
+                <h3 class="title">STATS</h3>
                 <div class="stats-body">
-                    {#each Object.entries(stats) as [stat, value]}
-                        <label for={stat}
-                            >{kebabToSpace(stat).toUpperCase()}</label
-                        >
+                    {#each Object.entries(statLabels) as [stat, { sm, md }]}
+                        <label for={stat}>
+                            {kebabToSpace(md).toUpperCase()}
+                        </label>
                         <span
-                            class="bar {stat} {getStatCategory(value)}"
-                            style="--current: {getStatProgress(value)}"
+                            class="bar {stat}"
+                            style="--color-progress: {getStatProgress(
+                                $stats[stat].toFixed(0)
+                            )}; 
+                            --bar-progress: {getStatBarProgress(
+                                $stats[stat].toFixed(0)
+                            )}"
                         />
-                        <p class="value">{value}</p>
+                        <p class="value">{$stats[stat].toFixed(0)}</p>
                     {/each}
                 </div>
             </div>
 
-            <div class="moves">
-                <select name="" id="" bind:value={movesetVersion}>
+            <div class="gender section">
+                <h3 class="title">GENDER RATIO</h3>
+                <div
+                    class="gender-bar"
+                    class:genderless={femaleRatio < 0}
+                    class:female-only={femaleRatio === 1}
+                    class:male-only={femaleRatio === 0}
+                    style="--female-ratio: {femaleRatio}"
+                >
+                    <span class="bar" />
+                    <p class="gender-tag text-male">
+                        {(1 - femaleRatio) * 100}% MALE
+                    </p>
+                    <p class="gender-tag text-genderless">GENDERLESS</p>
+                    <p class="gender-tag text-female">
+                        {femaleRatio * 100}% FEMALE
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-lg">
+            <div class="moves section">
+                <h3 class="title">MOVES</h3>
+                <select name="" id="" bind:value={currentMovesetVersion}>
                     {#each getMovesetVersions(pokemon) as version}
                         <option value={version}>
                             {versionGroupNames[version]}
@@ -297,15 +327,15 @@
                                 <th>Power</th>
                                 <th>PP</th>
                                 <th>Accuracy</th>
-                                <th>Description</th>
+                                <th class="description">Description</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {#each Object.entries(sortMovesetByLearnMethod(movesets["black-2-white-2"])) as [method, moveset]}
+                            {#each currentMoveset as [method, moveset]}
                                 <tr>
-                                    <td colspan="7" class="learn_method"
-                                        >{capitalize(kebabToSpace(method))}</td
-                                    >
+                                    <td colspan="7" class="learn_method">
+                                        {capitalize(kebabToSpace(method))}
+                                    </td>
                                 </tr>
                                 {#each moveset as { move }}
                                     <tr>
@@ -314,6 +344,12 @@
                                                 kebabToSpace(move.name)
                                             )}</td
                                         >
+                                        <td>1</td>
+                                        <td>1</td>
+                                        <td>1</td>
+                                        <td>1</td>
+                                        <td>1</td>
+                                        <td class="description">1</td>
                                     </tr>
                                 {/each}
                             {/each}
@@ -321,20 +357,20 @@
                     </table>
                 </div>
             </div>
-
-            <div class="evolution-chain" />
+            <div class="evolution-chain section" />
         </div>
-
-        <div class="panel" />
+    {:catch err}
+        <p>There was an error loading this pokemon</p>
     {/await}
 </div>
 
 <style lang="scss">
     .details {
         position: relative;
+        max-width: 100%;
         min-height: 100%;
-        // margin: 25px 200px;
         margin: 20px;
+        // margin: 25px 200px;
 
         display: flex;
         flex-wrap: wrap;
@@ -343,16 +379,38 @@
     }
 
     .panel {
-        &:nth-child(1) {
-            max-width: 500px;
+        // max-width: unquote("min(100%, 500px)");
+        width: 100%;
+        margin-bottom: 20px;
+        padding: 0 20px;
+
+        @media (min-width: 500px) {
+            // max-width: 500px;
+            max-width: 50%;
         }
+    }
+
+    .panel-lg {
+        width: 100%;
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+
+    .section {
+        &:not(:first-child) {
+            margin-top: 20px;
+        }
+    }
+
+    .title {
+        margin-bottom: 10px;
     }
 
     .line {
         display: flex;
     }
 
-    .id {
+    .national-id {
         position: relative;
         display: inline-block;
         color: #676060;
@@ -361,7 +419,7 @@
 
     .name {
         position: relative;
-        display: inline-block;
+        // display: inline-block;
         font-weight: bold;
         margin-right: 5px;
     }
@@ -370,7 +428,11 @@
         width: 100%;
         display: flex;
         justify-content: center;
-        margin-top: 10px;
+
+        img {
+            max-width: 500px;
+            width: 100%;
+        }
     }
 
     .genus {
@@ -380,17 +442,13 @@
     .types {
         $icon-size: 30px;
 
-        // display: inline-flex;
         display: flex;
-        flex: 1;
-        // margin-left: auto;
-        // margin-bottom: 10px;
+        min-height: 1rem;
 
         .type-tag {
             position: relative;
             display: inline-flex;
             clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-            // padding: 0 10px 0 0;
             background: rgba(16, 16, 16, 0.5);
             flex: 1;
             justify-content: flex-end;
@@ -416,13 +474,9 @@
                 font-weight: bold;
                 color: white;
                 z-index: 1;
-                // padding: 5px 15px 5px calc(2 * #{$icon-size} / 3);
-                // margin-left: calc(-2 * #{$icon-size} / 3);
-                // border-radius: 0 10px 10px 0;
             }
 
             &:nth-child(1) {
-                // transform: translate(10px, 0);
                 padding-right: 15px;
             }
 
@@ -431,14 +485,21 @@
 
                 clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
                 padding-left: 15px;
-                // padding: 0 0 0 10px;
-                // transform: translate(0, 5px);
+            }
+        }
 
-                .type-name {
-                    // padding: 0 0 0 10px;
-                    // margin-right: calc(-2 * #{$icon-size} / 3);
-                    // margin-left: -10px;
-                    // padding: 5px calc(2 * #{$icon-size} / 3) 5px 5px;
+        &.single {
+            .type-tag {
+                &:nth-child(1) {
+                    // clip-path: polygon(
+                    //     0 0,
+                    //     100% 0,
+                    //     calc(100% - 10px) 100%,
+                    //     10px 100%
+                    // );
+                    clip-path: none;
+                    justify-content: center;
+                    padding-right: 0;
                 }
             }
         }
@@ -446,15 +507,43 @@
 
     .metrics {
         display: flex;
-        flex-direction: column;
-        margin: 0 0 0 5px;
+        justify-content: space-between;
+        align-items: center;
+        // margin: 0 0 0 5px;
+        height: 100px;
+
         .metric {
             height: 100%;
+            width: 100px;
             color: #fff;
             padding: 5px;
             margin: 0 5px;
             background: #775e5e;
             // clip-path: polygon(10px 0, calc(100% - 10px));
+        }
+
+        .weight {
+            background: url("../assets/1x/weight.png");
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            background-size: contain;
+
+            h4 {
+                align-self: flex-end;
+                transform: translateY(-0.5rem);
+            }
+        }
+
+        .height {
+            background: url("../assets/1x/height3.png");
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            background-size: contain;
+
+            h4 {
+                align-self: flex-end;
+                transform: translateY(-0.5rem);
+            }
         }
     }
 
@@ -462,7 +551,11 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        margin-bottom: 10px;
+
+        p {
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            padding: 20px;
+        }
 
         select {
             margin-top: 10px;
@@ -470,7 +563,6 @@
     }
 
     .stats {
-        margin-top: 10px;
         .stats-body {
             display: grid;
             grid-template-rows: repeat(6, 1fr);
@@ -485,7 +577,8 @@
             }
 
             .bar {
-                --current: 0;
+                $current: 0;
+                $bar-progress: 0;
 
                 position: relative;
                 width: 100%;
@@ -502,33 +595,44 @@
                     height: 100%;
                     transform-origin: left;
                     transition: transform 0.2s ease-out;
-                    transform: scaleX(var(--current));
-                    background: #fff;
+                    transform: scaleX(var(--bar-progress));
+                    background: hsl(
+                        calc(var(--color-progress) * 330),
+                        90%,
+                        60%
+                    );
+                    // adjust-color(
+                    //     $color: hsl(0, 90%, 60%),
+                    //     $hue: 0,
+                    //     $saturation: 0%,
+                    //     $lightness: 0%,
+                    //     $alpha: 1
+                    // );
                 }
 
-                &.low {
-                    &:before {
-                        background: darkred;
-                    }
-                }
+                // &.low {
+                //     &:before {
+                //         background: darkred;
+                //     }
+                // }
 
-                &.medium {
-                    &:before {
-                        background: yellow;
-                    }
-                }
+                // &.medium {
+                //     &:before {
+                //         background: yellow;
+                //     }
+                // }
 
-                &.high {
-                    &:before {
-                        background: green;
-                    }
-                }
+                // &.high {
+                //     &:before {
+                //         background: green;
+                //     }
+                // }
 
-                &.hyper {
-                    &:before {
-                        background: cyan;
-                    }
-                }
+                // &.hyper {
+                //     &:before {
+                //         background: cyan;
+                //     }
+                // }
             }
 
             .value {
@@ -539,14 +643,20 @@
     }
 
     .abilities {
-        margin-top: 10px;
         .abilities-body {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-column-gap: 10px;
         }
 
         .ability {
             padding: 5px;
             border: 1px solid #000;
+            text-align: center;
+
+            &.hidden {
+                border: 1px solid #777777;
+            }
         }
     }
 
@@ -559,6 +669,7 @@
         table {
             position: relative;
             width: 100%;
+            border-collapse: collapse;
 
             th {
                 position: sticky;
@@ -571,17 +682,17 @@
                 text-align: center;
                 font-weight: bold;
                 position: sticky;
-                top: calc(1rem + 5px);
+                top: calc(1.4rem + 0.25vw);
                 background: #fff;
             }
         }
     }
 
-    .gender {
+    .gender-bar {
         --female-ratio: 0;
 
-        --male-tag-color: lightblue;
-        --female-tag-color: lightsalmon;
+        --male-tag-color: #62b4fb;
+        --female-tag-color: #ff4343;
 
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -624,23 +735,25 @@
 
         .gender-tag {
             white-space: nowrap;
-        }
+            font-weight: bold;
 
-        .text-male {
-            grid-area: 2 / 1;
-            // color: var(--male-tag-color);
-        }
+            &.text-male {
+                grid-area: 2 / 1;
+                // background: var(--male-tag-color);
+                padding-left: 5px;
+            }
+            &.text-female {
+                grid-area: 2 / 3;
+                justify-self: end;
+                // background: var(--female-tag-color);
+                padding-right: 5px;
+            }
 
-        .text-female {
-            grid-area: 2 / 3;
-            justify-self: end;
-            // color: var(--female-tag-color);
-        }
-
-        .text-genderless {
-            display: none;
-            grid-area: 2 / 2;
-            justify-self: center;
+            &.text-genderless {
+                display: none;
+                grid-area: 2 / 2;
+                justify-self: center;
+            }
         }
 
         &.genderless {
@@ -676,12 +789,6 @@
             .text-female {
                 display: none;
             }
-        }
-    }
-
-    @media screen and (max-width: 640px) {
-        .details {
-            margin: 10px;
         }
     }
 </style>

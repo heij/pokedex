@@ -32,6 +32,10 @@ function getMainColor(nameOrId) {
     return request(`/pokemon-color/${nameOrId}`);
 }
 
+function getGames() {
+    return request(`/version`);
+}
+
 module.exports = {
     getPokemon,
     getSpecies,
@@ -39,5 +43,6 @@ module.exports = {
     getForms,
     getMove,
     getAbilities,
-    getMainColor
+    getMainColor,
+    getGames
 }

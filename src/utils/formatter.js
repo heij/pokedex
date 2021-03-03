@@ -7,7 +7,6 @@ function kebabToSpace(text) {
 }
 
 function clearLinebreaks(text) {
-    console.log(text)
     return text.replace(/\r?\n|\r|\f/g, ' ');
 }
 

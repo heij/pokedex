@@ -1,0 +1,26 @@
+{
+    "hp": {
+        "sm": "HP",
+        "md": "HP"
+    },
+    "attack": {
+        "sm": "ATK",
+        "md": "ATTACK"
+    },
+    "defense": {
+        "sm": "DEF",
+        "md": "DEFENSE"
+    },
+    "special-attack": {
+        "sm": "S. ATK",
+        "md": "SP. ATTACK"
+    },
+    "special-defense": {
+        "sm": "S. DEF",
+        "md": "SP. DEFENSE"
+    },
+    "speed": {
+        "sm": "SPE",
+        "md": "SPEED"
+    }
+}
