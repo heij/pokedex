@@ -16,7 +16,7 @@ self.addEventListener('fetch', (event) => {
     if (apiReq || imgReq) {
         event.respondWith(caches.match(event.request).then((response) => {
             if (response) {
-                console.log(`Is cached: ${event.request.url}`)
+                // console.log(`Is cached: ${event.request.url}`);
                 return response;
             }
 

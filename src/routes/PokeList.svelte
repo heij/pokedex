@@ -10,6 +10,7 @@
 
     let speciesReference = [];
     let visible = [];
+    let pokemonData = [];
 
     let visibleStartIndex = 0;
     let visibleEndIndex = 0;
@@ -21,7 +22,7 @@
     let cardsInRow;
     let rows;
 
-    let gridGap = 10;
+    let gridGap = 20;
     let gridPadding = 20;
     let cardHeight = 200;
     let cardWidth = 150;
@@ -41,6 +42,8 @@
             ...s,
             index: i,
         }));
+
+        pokemonData = Array(speciesReference.length).fill();
 
         setGrid();
         updateGrid();
@@ -96,6 +99,19 @@
             visibleEndIndex = endIndex;
 
             visible = speciesReference.slice(startIndex, endIndex);
+
+            visible.forEach(async (v) => {
+                if (!pokemonData[v.index]) {
+                    pokemonData[v.index] = {};
+
+                    let species = await fetchUrl(v.url);
+                    pokemonData[v.index].species = species;
+
+                    let dataUrl = species.varieties.find((v) => v.is_default)
+                        .pokemon.url;
+                    pokemonData[v.index].pokemon = await fetchUrl(dataUrl);
+                }
+            });
         }
     }
 </script>
@@ -108,7 +124,11 @@
 
 <div class="grid-list" bind:this={grid} style="height: {gridHeight}px;">
     {#each visible as pokemon}
-        <Pokecard {pokemon} cardLeft={pokemon.left} cardTop={pokemon.top} />
+        <Pokecard
+            pokemon={pokemonData[pokemon.index].pokemon}
+            cardLeft={pokemon.left}
+            cardTop={pokemon.top}
+        />
     {/each}
 </div>
 

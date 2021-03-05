@@ -1,6 +1,7 @@
 <script>
     import { push } from "svelte-spa-router";
     import victini from "../resources/victini.json";
+    import { capitalize } from "../utils/formatter";
     import TypeIcon from "./typeIcon.svelte";
 
     export let pokemon;
@@ -55,18 +56,27 @@
     on:click={showDetails}
     style="left: {cardLeft}px; top: {cardTop}px;"
 >
-    <div class="type-tags">
-        <!-- {#each getTypes(pokemon) as type}
-            <span class="type-tag">
-                <TypeIcon {type} />
-            </span>
-        {/each} -->
-    </div>
-    <div class="number"># 001</div>
-    <h4 class="name">{pokemon.name}</h4>
-    <div class="body">
-        <img src="assets/victini_md.png" alt="" />
-    </div>
+    {#if pokemon?.name}
+        <div class="type-tags">
+            {#each getTypes(pokemon) as type}
+                <span class="type-tag">
+                    <TypeIcon {type} />
+                </span>
+            {/each}
+        </div>
+        <div class="number"># 001</div>
+        <h4 class="name">{capitalize(pokemon.name)}</h4>
+        <div class="body">
+            <img
+                src={pokemon.sprites.other["official-artwork"].front_default}
+                alt=""
+            />
+        </div>
+    {:else}
+        <div class="number"># ---</div>
+        <h4 class="name">---</h4>
+        <div class="body" />
+    {/if}
 </span>
 
 <style lang="scss">

@@ -50,12 +50,6 @@
         }, {});
     }
 
-    let statCategories = ["hyper", "high", "medium", "low"];
-    function getStatCategory(stat) {
-        let index = [150, 120, 90, 0].findIndex((t) => stat >= t);
-        return statCategories[index];
-    }
-
     function getStatProgress(stat) {
         let maximumValue = 512;
         return Math.min(stat / maximumValue, 1);
