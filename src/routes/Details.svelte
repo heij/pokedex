@@ -13,7 +13,7 @@
     import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
     import { tweened } from "svelte/motion";
-    import { cubicOut, expoOut } from "svelte/easing";
+    import { expoOut } from "svelte/easing";
 
     function getNationalId(species) {
         let id = species.pokedex_numbers

@@ -1,42 +1,71 @@
 const domain = 'https://pokeapi.co/api/v2';
 
-function request(url) {
-    return fetch(`${domain}${url}`).then(res => res.json());
+function fetchUrl(url) {
+    return fetch(url).then(res => res.json());
 }
 
-function getPokemon(nameOrId) {
-    return request(`/pokemon/${nameOrId}`);
+function request(endpoint, path, params) {
+    let url = buildUrl(endpoint, path, params);
+
+    return fetchUrl(url);
 }
 
-function getSpecies(nameOrId) {
-    return request(`/pokemon-species/${nameOrId}`);
+function buildUrl(endpoint, resource, query) {
+    let url = domain + endpoint;
+
+    if (resource) url += `/${resource}`;
+    if (query) {
+        url += `?${new URLSearchParams(query)}`;
+    }
+
+    return url;
 }
 
-function getEvolutionChain(nameOrId) {
-    return request(`/evolution-chain/${nameOrId}`);
+function getPokemon(nameOrId, query) {
+    return request(`/pokemon`, nameOrId, query);
 }
 
-function getMove(nameOrId) {
-    return request(`/move/${nameOrId}`);
+function getSpecies(nameOrId, query) {
+    return request(`/pokemon-species`, nameOrId, query);
 }
 
-function getAbilities(nameOrId) {
-    return request(`/ability/${nameOrId}`);
+function getEvolutionChain(nameOrId, query) {
+    return request(`/evolution-chain`, nameOrId, query);
 }
 
-function getForms(nameOrId) {
-    return request(`/pokemon-form/${nameOrId}`);
+function getMove(nameOrId, query) {
+    return request(`/move`, nameOrId, query);
 }
 
-function getMainColor(nameOrId) {
-    return request(`/pokemon-color/${nameOrId}`);
+function getAbilities(nameOrId, query) {
+    return request(`/ability`, nameOrId, query);
+}
+
+function getForms(nameOrId, query) {
+    return request(`/pokemon-form`, nameOrId, query);
+}
+
+function getMainColor(nameOrId, query) {
+    return request(`/pokemon-color/`, nameOrId, query);
 }
 
 function getGames() {
     return request(`/version`);
 }
 
+function getAllSpecies() {
+    return getSpecies()
+        .then(({ count }) => getSpecies(null, { limit: count }))
+        .then(({ results }) => results)
+    // let { count } = await getSpecies();
+    // let species = (await getSpecies(null, { limit: count })).results;
+    // console.log(species)
+
+    // return species;
+}
+
 module.exports = {
+    fetchUrl,
     getPokemon,
     getSpecies,
     getEvolutionChain,
@@ -44,5 +73,6 @@ module.exports = {
     getMove,
     getAbilities,
     getMainColor,
-    getGames
+    getGames,
+    getAllSpecies
 }

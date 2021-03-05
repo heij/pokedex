@@ -13,10 +13,6 @@ async function installServiceWorkerAsync() {
 	}
 }
 
-async function checkCacheValidity() {
-
-}
-
 const app = new App({
 	target: document.body,
 	props: {}

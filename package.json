@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@rollup/plugin-json": "^4.1.0",
+    "just-debounce-it": "^1.1.0",
+    "just-throttle": "^1.1.0",
     "node-sass": "^5.0.0",
     "rollup-plugin-workbox": "^6.1.1",
     "sirv-cli": "^1.0.0",

@@ -4,12 +4,15 @@
     import TypeIcon from "./typeIcon.svelte";
 
     export let pokemon;
+    export let cardLeft;
+    export let cardTop;
+
     let active = false;
     let rotation = 10;
 
     let activateTimeout = null;
 
-    pokemon = victini;
+    // pokemon = victini;
 
     function startTilt() {
         activateTimeout = setTimeout(() => (active = true), 200);
@@ -50,13 +53,14 @@
     on:mousemove={updateTilt}
     on:mouseleave={resetTilt}
     on:click={showDetails}
+    style="left: {cardLeft}px; top: {cardTop}px;"
 >
     <div class="type-tags">
-        {#each getTypes(pokemon) as type}
+        <!-- {#each getTypes(pokemon) as type}
             <span class="type-tag">
                 <TypeIcon {type} />
             </span>
-        {/each}
+        {/each} -->
     </div>
     <div class="number"># 001</div>
     <h4 class="name">{pokemon.name}</h4>
@@ -85,6 +89,8 @@
         transform-style: preserve-3d;
         transform: perspective(1000px) rotateX(calc(var(--xRotation) * 10deg))
             rotateY(calc(var(--yRotation) * 10deg));
+
+        position: absolute;
 
         &.active {
             transition: none;

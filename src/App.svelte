@@ -23,7 +23,6 @@
 	main {
 		position: relative;
 		min-height: 100vh;
-		height: 100%;
 		width: 100%;
 		overflow-x: hidden;
 		background: rgb(223, 172, 172);
