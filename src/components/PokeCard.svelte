@@ -1,19 +1,21 @@
 <script>
     import { push } from "svelte-spa-router";
-    import victini from "../resources/victini.json";
     import { capitalize } from "../utils/formatter";
     import TypeIcon from "./typeIcon.svelte";
+    import { send, receive } from "../animations/crossfade.js";
+    import { fly, fade } from "svelte/transition";
+    import { quartOut, quartIn } from "svelte/easing";
+    import "skeleton-elements/skeleton-elements.css";
+    import { SkeletonText } from "skeleton-elements/svelte";
+    import { SkeletonBlock } from "skeleton-elements/svelte";
 
-    export let pokemon;
+    export let data;
+    export let pokemonName;
     export let cardLeft;
     export let cardTop;
 
     let active = false;
-    let rotation = 10;
-
     let activateTimeout = null;
-
-    // pokemon = victini;
 
     function startTilt() {
         activateTimeout = setTimeout(() => (active = true), 200);
@@ -39,11 +41,26 @@
     }
 
     function showDetails() {
-        push(`/pokemon/${pokemon.id}`);
+        if (data == undefined) {
+            return;
+        }
+
+        push(`/pokemon/${data.pokemon.id}`);
     }
 
     function getTypes(pokemon) {
         return pokemon.types.map((t) => t.type.name);
+    }
+
+    function getNationalId(species) {
+        return species.pokedex_numbers
+            .find((p) => (p.pokedex.name = "national"))
+            .entry_number.toString()
+            .padStart(3, "0");
+    }
+
+    function getRandom(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 </script>
 
@@ -55,27 +72,55 @@
     on:mouseleave={resetTilt}
     on:click={showDetails}
     style="left: {cardLeft}px; top: {cardTop}px;"
+    in:fly={{
+        y: 50,
+        duration: 250,
+        easing: quartOut,
+        delay: getRandom(0, 250),
+    }}
+    out:fly={{
+        y: -50,
+        duration: 250,
+        easing: quartIn,
+        delay: getRandom(0, 250),
+    }}
 >
-    {#if pokemon?.name}
+    {#if data != undefined}
         <div class="type-tags">
-            {#each getTypes(pokemon) as type}
+            {#each getTypes(data.pokemon) as type}
                 <span class="type-tag">
                     <TypeIcon {type} />
                 </span>
             {/each}
         </div>
-        <div class="number"># 001</div>
-        <h4 class="name">{capitalize(pokemon.name)}</h4>
+        <small class="number text-faded"># {getNationalId(data.species)}</small>
+        <h4 class="name">{capitalize(data.species.name)}</h4>
         <div class="body">
             <img
-                src={pokemon.sprites.other["official-artwork"].front_default}
+                src={data.pokemon.sprites.front_default}
                 alt=""
+                in:receive|local={{ key: "pokeImg" }}
+                out:send|local={{ key: "pokeImg" }}
             />
         </div>
     {:else}
-        <div class="number"># ---</div>
-        <h4 class="name">---</h4>
-        <div class="body" />
+        <div
+            class="skeleton-wrapper"
+            transition:fade={{ duration: 500, easing: quartOut }}
+        >
+            <div class="type-tags" />
+            <p class="number text-faded">
+                <SkeletonText effect="pulse">00000</SkeletonText>
+            </p>
+            <h3 class="name center-content">
+                <SkeletonBlock effect="pulse" width="85%">
+                    <SkeletonText tag="h3" effect="pulse">00000</SkeletonText>
+                </SkeletonBlock>
+            </h3>
+            <div class="body">
+                <SkeletonBlock width="75%" height="75%" effect="pulse" />
+            </div>
+        </div>
     {/if}
 </span>
 
@@ -84,7 +129,6 @@
         $xRotation: 0;
         $yRotation: 0;
 
-        position: relative;
         display: inline-flex;
         width: 150px;
         height: 200px;
@@ -104,12 +148,6 @@
 
         &.active {
             transition: none;
-        }
-
-        &:hover {
-            img {
-                transform: translateZ(20px);
-            }
         }
 
         .type-tags {
@@ -133,6 +171,7 @@
         }
 
         .number {
+            display: block;
             margin-bottom: 5px;
             pointer-events: none;
         }
@@ -140,19 +179,25 @@
         .name {
             text-align: center;
             pointer-events: none;
+
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .body {
             position: relative;
             display: flex;
+            justify-content: center;
             align-items: center;
-            flex: 1;
+            // flex: 1;
             pointer-events: none;
             perspective: 1000px;
             transform-style: preserve-3d;
+            width: 100%;
+            height: 140px;
 
             &::before {
-                $margin: 25px;
+                $margin: 50px;
 
                 content: "";
                 width: calc(100% - #{$margin});
@@ -160,15 +205,74 @@
                 position: absolute;
                 left: #{$margin / 2};
                 top: #{$margin / 2};
-                border: 1px solid rgba(0, 0, 0, 0.25);
-                border-radius: 10px;
-                background: rgba(255, 255, 255, 0.25);
+                // border: 1px solid rgba(0, 0, 0, 0.25);
+                border-radius: 50%;
+                // background: rgba(255, 255, 255, 0.25);
+                background-image: url("../assets/1x/pokeball.png");
+                background-position: center;
+                background-size: cover;
             }
 
             img {
                 position: relative;
                 max-width: 100%;
-                transition: transform 0.2s ease-in-out;
+                transform: translateY(0) translateZ(0);
+                // transition: transform 0.2s ease-in-out;
+
+                @keyframes popBack {
+                    0% {
+                        transform: translateY(-2.5px) translateZ(20px);
+                    }
+                    100% {
+                        transform: translateY(0) translateZ(0);
+                    }
+                }
+
+                @keyframes popout {
+                    0% {
+                        transform: translateY(0) translateZ(0);
+                    }
+                    100% {
+                        transform: translateY(0) translateZ(20px);
+                    }
+                }
+
+                @keyframes breathe {
+                    0% {
+                        transform: translateY(0) translateZ(20px);
+                    }
+                    90% {
+                        transform: translateY(-5px) translateZ(20px);
+                    }
+                    100% {
+                        transform: translateY(-5px) translateZ(20px);
+                    }
+                }
+
+                animation: 0.25s popBack ease-out;
+            }
+        }
+
+        &:hover {
+            img {
+                transform: translateZ(20px);
+
+                animation: 0.25s popout ease-out,
+                    2s breathe ease-in-out infinite alternate 0.25s;
+            }
+        }
+
+        .skeleton-wrapper {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 10px);
+            width: calc(100% - 10px);
+            left: 5px;
+            top: 5px;
+
+            .number {
+                margin-bottom: 10px;
             }
         }
     }

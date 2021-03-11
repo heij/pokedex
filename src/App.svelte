@@ -25,6 +25,6 @@
 		min-height: 100vh;
 		width: 100%;
 		overflow-x: hidden;
-		background: rgb(223, 172, 172);
+		background: #868686;
 	}
 </style>

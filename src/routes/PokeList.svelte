@@ -7,6 +7,8 @@
     } from "../services/pokeapi.js";
     import throttle from "just-throttle";
     import { onMount } from "svelte";
+    import { fly } from "svelte/transition";
+    import { expoIn } from "svelte/easing";
 
     let speciesReference = [];
     let visible = [];
@@ -99,20 +101,33 @@
             visibleEndIndex = endIndex;
 
             visible = speciesReference.slice(startIndex, endIndex);
-
             visible.forEach(async (v) => {
-                if (!pokemonData[v.index]) {
-                    pokemonData[v.index] = {};
-
-                    let species = await fetchUrl(v.url);
-                    pokemonData[v.index].species = species;
-
-                    let dataUrl = species.varieties.find((v) => v.is_default)
-                        .pokemon.url;
-                    pokemonData[v.index].pokemon = await fetchUrl(dataUrl);
+                if (pokemonData[v.index]) {
+                    return;
                 }
+
+                let species = await fetchUrl(v.url);
+                let pokemonUrl = species.varieties.find((v) => v.is_default)
+                    .pokemon.url;
+                let pokemon = await fetchUrl(pokemonUrl);
+
+                pokemonData[v.index] = {
+                    species,
+                    pokemon,
+                };
             });
         }
+    }
+
+    function chunk(array, size) {
+        // This prevents infinite loops
+        if (size < 1) throw new Error("Size must be positive");
+
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
     }
 </script>
 
@@ -122,10 +137,20 @@
     bind:scrollY={scrollTop}
 />
 
-<div class="grid-list" bind:this={grid} style="height: {gridHeight}px;">
-    {#each visible as pokemon}
+<div
+    bind:this={grid}
+    class="grid-list"
+    style="height: {gridHeight}px;"
+    transition:fly|local={{
+        x: -window.innerWidth,
+        duration: 500,
+        easing: expoIn,
+    }}
+>
+    {#each visible as pokemon (pokemon.index)}
         <Pokecard
-            pokemon={pokemonData[pokemon.index].pokemon}
+            pokemonName={speciesReference[pokemon.index].name}
+            data={pokemonData[pokemon.index]}
             cardLeft={pokemon.left}
             cardTop={pokemon.top}
         />
@@ -135,6 +160,6 @@
 <style lang="scss">
     .grid-list {
         position: relative;
-        background: lightcoral;
+        background: #868686;
     }
 </style>

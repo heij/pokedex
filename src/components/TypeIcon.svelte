@@ -1,5 +1,6 @@
 <script>
     export let type;
+    export let color;
 
     import typeColors from "../data/typeColors.json";
 
@@ -44,7 +45,10 @@
     };
 </script>
 
-<span class="icon-wrapper {type}" style="--type-color: {typeColors[type]}">
+<span
+    class="icon-wrapper {type}"
+    style="--type-color: {color || typeColors[type]}"
+>
     {@html icons[type]}
 </span>
 

@@ -1,40 +1,64 @@
 const imgRe = /https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/[\/-\w\d]+\/[\d\w-]+\.(?:png|svg|gif)/;
-const apiRe = /https:\/\/pokeapi\.co\/api\/v2\/.*/;
+const dataRe = /https:\/\/pokeapi\.co\/api\/v2\/.*/;
 const gamesRe = /https:\/\/pokeapi\.co\/api\/v2\/version/;
-const version = 2;
+const version = 3;
 
-const pokeApiCache = "pokeapi-" + version;
+const pokeApiDataCache = `pokeapi-data-${version}`;
+const pokeApiImgCache = `pokeapi-imgs-${version}`;
 
 self.addEventListener('fetch', (event) => {
     if (event.request.url.match(gamesRe)) {
         return false;
     }
 
-    let apiReq = event.request.url.match(apiRe);
+    let dataReq = event.request.url.match(dataRe);
     let imgReq = event.request.url.match(imgRe);
-
-    if (apiReq || imgReq) {
-        event.respondWith(caches.match(event.request).then((response) => {
-            if (response) {
-                // console.log(`Is cached: ${event.request.url}`);
-                return response;
-            }
-
-            return fetch(event.request).then((response) => {
-                caches.open(pokeApiCache).then((cache) => {
-                    cache.add(event.request.url);
-                });
-                return response;
-
-            }).catch((error) => {
-                console.error(error);
-            });
-        }));
+    if (!dataReq && !imgReq) {
+        return false;
     }
+
+    let cacheName;
+    if (dataReq) { cacheName = pokeApiDataCache }
+    if (imgReq) { cacheName = pokeApiImgCache }
+
+    respondAndCache(event, cacheName);
 })
 
 self.addEventListener('install', (event) => {
+    event.waitUntil(self.skipWaiting());
+
+    console.log('install');
+})
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(Promise.all([
+        self.clients.claim(),
+        checkCacheValidity()
+    ]))
+
+    console.log('activate');
+});
+
+function respondAndCache(event, cacheName) {
+    return event.respondWith(caches.open(cacheName).then(cache => {
+        return cache.match(event.request).then(response => {
+            if (response) {
+                return response;
+            }
+
+            return fetch(event.request).then(res => {
+                cache.add(event.request.url);
+                return res;
+            }).catch((error) => {
+                console.error(error);
+            });
+        });
+    }));
+}
+
+function checkCacheValidity() {
     let versionUrl = 'https://pokeapi.co/api/v2/version';
+
     fetch(versionUrl)
         .then(res => {
             if (!res.ok) {
@@ -45,10 +69,10 @@ self.addEventListener('install', (event) => {
 
             clone.json().then(parsedRes => {
 
-                caches.open(pokeApiCache).then((cache) => {
+                caches.open(pokeApiDataCache).then((cache) => {
                     cache.match(versionUrl).then(cachedRes => {
                         if (cachedRes && parsedRes.count != cachedRes.count) {
-                            caches.delete(pokeApiCache);
+                            caches.delete(pokeApiDataCache);
                         }
 
                         cache.put(versionUrl, res);
@@ -59,5 +83,4 @@ self.addEventListener('install', (event) => {
 
         });
 
-    console.log('install');
-})
+}
