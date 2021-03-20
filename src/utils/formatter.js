@@ -3,12 +3,15 @@ function capitalize(text) {
 }
 
 function kebabToSpace(text) {
-    return text.replace('-', ' ');
+    return text.replaceAll('-', ' ');
+}
+
+function formatText(text) {
+    return capitalize(kebabToSpace(text));
 }
 
 function clearLinebreaks(text) {
     return text.replace(/\r?\n|\r|\f/g, ' ');
 }
 
-
-module.exports = { capitalize, kebabToSpace, clearLinebreaks };
+module.exports = { capitalize, kebabToSpace, formatText, clearLinebreaks };

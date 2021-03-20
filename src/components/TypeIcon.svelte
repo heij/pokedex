@@ -1,6 +1,6 @@
 <script>
     export let type;
-    export let color;
+    export let color = null;
 
     import typeColors from "../data/typeColors.json";
 
@@ -54,7 +54,7 @@
 
 <style>
     .icon-wrapper {
-        --type-color: #fff;
+        --type-color: #060101b8;
 
         width: 100%;
         height: 100%;

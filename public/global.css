@@ -2,6 +2,17 @@
 
 :root {
 	font-size: 62.5%;
+
+	--green: hsl(120, 50%, 70%);
+	--black: hsl(0, 0%, 40%);
+	--blue: hsl(199, 50%, 70%);
+	--brown: hsl(38, 50%, 70%);
+	--gray: hsl(120, 50%, 70%);
+	--pink: hsl(306, 50%, 70%);
+	--purple: hsl(274, 50%, 70%);
+	--red: hsl(0, 50%, 70%);
+	--white: hsl(0, 0%, 80%);
+	--yellow: hsl(60, 50%, 70%);
 }
 
 * {
@@ -80,7 +91,7 @@ h1 {
 	font-size: calc(3rem + .25vw);
 } h3 {
 	font-size: calc(2rem + .25vw);
-}  h4 {
+} h4 {
 	font-size: calc(1.6rem + .25vw);
 } p {
 	font-size: calc(1.4rem + .25vw);
@@ -100,4 +111,49 @@ h1 {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.bg-green { 
+	background: var(--green); 
+} .bg-black { 
+	background: var(--black); 
+	color: hsl(0, 0%, 90%);
+} .bg-blue { 
+	background: var(--blue); 
+} .bg-brown { 
+	background: var(--brown); 
+} .bg-gray { 
+	background: var(--gray); 
+} .bg-pink { 
+	background: var(--pink); 
+} .bg-purple { 
+	background: var(--purple);
+} .bg-red { 
+	background: var(--red); 
+} .bg-white { 
+	background: var(--white); 
+} .bg-yellow { 
+	background: var(--yellow); 
+}
+
+.color-green { 
+	color: var(--green);
+} .color-black { 
+	color: var(--black);
+} .color-blue { 
+	color: var(--blue);
+} .color-brown { 
+	color: var(--brown);
+} .color-gray { 
+	color: var(--gray);
+} .color-pink { 
+	color: var(--pink);
+} .color-purple { 
+	color: var(--purple);
+} .color-red { 
+	color: var(--red);
+} .color-white { 
+	color: var(--white);
+} .color-yellow { 
+	color: var(--yellow);
 }

@@ -5,9 +5,17 @@
     import {
         capitalize,
         kebabToSpace,
+        formatText,
         clearLinebreaks,
     } from "../utils/formatter.js";
-    import { getPokemon, getSpecies, fetchUrl } from "../services/pokeapi.js";
+    import { parseEvolutionDetails } from "../utils/evolutionDetails.js";
+    import { parseMove } from "../utils/moveParser.js";
+    import {
+        getPokemon,
+        getSpecies,
+        getMove,
+        fetchUrl,
+    } from "../services/pokeapi.js";
     import TypeIcon from "../components/typeIcon.svelte";
     import typeColors from "../data/typeColors.json";
     import versionGroupNames from "../data/versionGroupNames.json";
@@ -136,6 +144,10 @@
         }, {});
     }
 
+    function getMoveData(moves) {
+        return moves.map((m) => getMove(m.url));
+    }
+
     function getEvolutionChain(
         chain,
         currentLevel = 0,
@@ -173,6 +185,7 @@
             evolvesFrom: evolvesFrom,
             evolutionDetails: evoDetails,
             trigger: trigger,
+            pokemonData: getPokemon(selfReference.name),
         });
 
         chain.evolves_to.forEach((c) => {
@@ -182,21 +195,9 @@
         return result;
     }
 
-    function translateToZero(node, { duration, delay, start }) {
-        return {
-            duration,
-            delay,
-            css: (t) => {
-                const eased = elasticOut(t);
-
-                return `transform: translateX(${start - start * eased}%)`;
-            },
-        };
-    }
-
     pokemon = null;
     let species;
-    let evolutionChain;
+    let evolutionData;
 
     let nationalId = 0;
     let stats = tweened(
@@ -214,8 +215,10 @@
         }
     );
 
+    let windowX;
     let abilities = [];
     let types = [];
+    let evolutionChain = [];
     let genus = "";
     let flavorsTexts = [];
     let currentFlavorVersion = "";
@@ -227,6 +230,14 @@
     // let femaleRatio = -1;
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
     let sprite = "";
+    let statIcons = [
+        "../assets/1x/hp.png",
+        "../assets/1x/atk.png",
+        "../assets/1x/def.png",
+        "../assets/1x/sp_atk.png",
+        "../assets/1x/sp_def.png",
+        "../assets/1x/spe.png",
+    ];
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
     $: currentMoveset = Object.entries(
@@ -240,7 +251,8 @@
                 getSpecies(params.id),
             ]);
 
-            evolutionChain = await fetchUrl(species.evolution_chain.url);
+            evolutionData = await fetchUrl(species.evolution_chain.url);
+            evolutionChain = getEvolutionChain(evolutionData.chain);
 
             nationalId = getNationalId(species);
             abilities = getAbilities(pokemon);
@@ -262,8 +274,10 @@
     let data = loadData();
 </script>
 
+<svelte:window bind:innerWidth={windowX} />
+
 <div
-    class="details"
+    class="details {species && `bg-${species.color.name}`}"
     transition:fly|local={{
         x: window.innerWidth,
         duration: 500,
@@ -349,52 +363,60 @@
                     )
                     .join("")}
             >
-                <!-- <img class="bg" src="../assets/1x/pokeball_md.png" alt="" /> -->
+                <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
                 <img class="sprite" src={sprite} alt="" />
             </div>
 
-            <div
-                class="types section"
-                class:single={types.length == 1}
-                class:double={types.length == 2}
-            >
-                {#each types as type, i}
-                    <div
-                        class="type-tag {type}"
-                        style="--type-color: {typeColors[type]}"
-                    >
-                        <div class="icon">
-                            <TypeIcon {type} color="#000" />
+            <div class="pokemon-details section">
+                <div class="metrics">
+                    <div class="body">
+                        <div class="metric height">
+                            <h3>HEIGHT</h3>
+                            <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
                         </div>
-                        <h4 class="type-name">
-                            {type.toUpperCase()}
-                        </h4>
+                        <div class="metric weight">
+                            <h3>WEIGHT</h3>
+                            <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
+                        </div>
                     </div>
-                {/each}
-            </div>
+                </div>
+                <div
+                    class="types"
+                    class:single={types.length == 1}
+                    class:double={types.length == 2}
+                >
+                    {#each types as type, i}
+                        <div
+                            class="type-tag {type}"
+                            style="--type-color: {typeColors[type]}"
+                        >
+                            <div class="icon">
+                                <TypeIcon {type} color="#000" />
+                            </div>
+                            <p class="type-name text-crop">
+                                {type.toUpperCase()}
+                            </p>
+                        </div>
+                    {/each}
+                </div>
+                <div class="flavor-text-wrapper">
+                    <h2 class="text-crop">“</h2>
+                    <p>
+                        {clearLinebreaks(currentFlavorText)}
+                    </p>
+                    <h2 class="text-crop" style="text-align: end;">”</h2>
+                </div>
+                <div class="flavor-select-wrapper">
+                    <span>VERSION: </span>
 
-            <div class="flavor-text section">
-                <h3>POKEDEX ENTRY</h3>
-                {#if species}
-                    <div class="flavor-text-wrapper">
-                        <h2>“</h2>
-                        <p>
-                            {clearLinebreaks(currentFlavorText)}
-                        </p>
-                        <h2 style="text-align: end;">”</h2>
-                    </div>
-                    <div class="flavor-select-wrapper">
-                        <span>VERSION: </span>
-
-                        <select name="" id="" bind:value={currentFlavorVersion}>
-                            {#each getFlavorVersions(species) as { version }}
-                                <option value={version.name}>
-                                    {capitalize(kebabToSpace(version.name))}
-                                </option>
-                            {/each}
-                        </select>
-                    </div>
-                {/if}
+                    <select name="" id="" bind:value={currentFlavorVersion}>
+                        {#each getFlavorVersions(species) as { version }}
+                            <option value={version.name}>
+                                {capitalize(kebabToSpace(version.name))}
+                            </option>
+                        {/each}
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -419,9 +441,14 @@
             <div class="stats section">
                 <h3 class="title">STATS</h3>
                 <div class="stats-body">
-                    {#each Object.entries(statLabels) as [stat, { sm, md }]}
+                    {#each Object.entries(statLabels) as [stat, { sm, md }], i}
                         <label for={stat}>
-                            {kebabToSpace(md).toUpperCase()}
+                            <span class="stat-name">
+                                {windowX > 600
+                                    ? kebabToSpace(md).toUpperCase()
+                                    : kebabToSpace(sm).toUpperCase()}
+                            </span>
+                            <img class="stat-icon" src={statIcons[i]} alt="" />
                         </label>
                         <span
                             class="bar {stat}"
@@ -456,18 +483,6 @@
                     </p>
                 </div>
             </div>
-
-            <div class="metrics section">
-                <h3 class="title">MEASUREMENTS</h3>
-                <div class="body">
-                    <div class="center-content metric height">
-                        <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
-                    </div>
-                    <div class="center-content metric weight">
-                        <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="panel-lg">
@@ -487,9 +502,9 @@
                                 <th>Name</th>
                                 <th>Type</th>
                                 <th>Category</th>
-                                <th>Power</th>
-                                <th>PP</th>
-                                <th>Accuracy</th>
+                                <th class="col-md">Power</th>
+                                <th class="col-md">PP</th>
+                                <th class="col-md">Accuracy</th>
                                 <th class="description">Description</th>
                             </tr>
                         </thead>
@@ -501,19 +516,43 @@
                                     </td>
                                 </tr>
                                 {#each moveset as { move }}
-                                    <tr>
-                                        <td
-                                            >{capitalize(
-                                                kebabToSpace(move.name)
-                                            )}</td
-                                        >
-                                        <td>1</td>
-                                        <td>1</td>
-                                        <td>1</td>
-                                        <td>1</td>
-                                        <td>1</td>
-                                        <td class="description">1</td>
-                                    </tr>
+                                    {#await fetchUrl(move.url) then rawData}
+                                        {#each [parseMove(rawData)] as moveData}
+                                            <tr>
+                                                <td
+                                                    >{capitalize(
+                                                        kebabToSpace(move.name)
+                                                    )}</td
+                                                >
+                                                <td>
+                                                    <TypeIcon
+                                                        type={moveData.type
+                                                            .name}
+                                                    />
+                                                </td>
+                                                <td
+                                                    >{formatText(
+                                                        moveData.damage_class
+                                                            .name
+                                                    )}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.power || 0}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.pp}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.accuracy ||
+                                                        "-"}</td
+                                                >
+                                                <td class="description"
+                                                    >{moveData.effect_entries[0]
+                                                        .short_effect}</td
+                                                >
+                                            </tr>
+                                        {/each}
+                                    {/await}
                                 {/each}
                             {/each}
                         </tbody>
@@ -526,21 +565,28 @@
         <div class="panel-lg">
             <h3 class="title">EVOLUTION CHAIN</h3>
             <div class="evolution-chain">
-                {#each getEvolutionChain(evolutionChain.chain) as row}
+                {#each evolutionChain as row}
                     <div class="row">
                         {#each row as pokemon}
                             <div class="evo-entry">
                                 <div class="requirements">
                                     {#if pokemon.evolutionDetails}
-                                        {#each Object.entries(pokemon.evolutionDetails) as [type, value]}
-                                            <p>{type} -> {value}</p>
+                                        {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
+                                            {#if i == 0}
+                                                <h4>{requirement}</h4>
+                                            {:else}
+                                                <p>{requirement}</p>
+                                            {/if}
                                         {/each}
-                                        <h3>
-                                            {pokemon.trigger.name}
-                                        </h3>
                                     {/if}
                                 </div>
-                                <h2>{pokemon.name}</h2>
+                                {#await pokemon.pokemonData then data}
+                                    <img
+                                        src={data.sprites.front_default}
+                                        alt=""
+                                    />
+                                {/await}
+                                <h3>{capitalize(pokemon.name)}</h3>
                             </div>
                         {/each}
                     </div>
@@ -566,7 +612,7 @@
         flex-wrap: wrap;
         flex-direction: row;
         justify-content: space-around;
-        background: #868686;
+        // background: #868686;
     }
 
     .panel {
@@ -577,7 +623,14 @@
         overflow-x: hidden;
 
         @media (min-width: 600px) {
-            max-width: 50%;
+            // max-width: 50%;
+            max-width: 500px;
+        }
+
+        &:nth-child(1) {
+            box-shadow: 5px 5px 10px #000;
+            border-radius: 10px;
+            padding: 0;
         }
     }
 
@@ -595,6 +648,9 @@
         }
     }
 
+    .id {
+    }
+
     .title {
         margin-bottom: 10px;
     }
@@ -606,14 +662,25 @@
     .national-id {
         position: relative;
         display: inline-block;
-        color: #676060;
         align-self: flex-end;
+        padding: 10px 20px;
+        color: #fff;
+        margin: 10px 0 10px 0;
+        font-weight: bold;
+        background: #292626;
     }
 
     .name {
         position: relative;
-        // display: inline-block;
         font-weight: bold;
+        padding: 5px 15px;
+        margin: 0 0 0 10px;
+        background: #292626;
+        color: #fff;
+    }
+
+    .genus {
+        padding: 5px 0 0 15px;
     }
 
     .img-wrapper {
@@ -624,6 +691,7 @@
         display: flex;
         justify-content: center;
         z-index: 1;
+        padding: 0 20px;
 
         // &::before,
         // &::after {
@@ -653,7 +721,7 @@
             filter: drop-shadow(2px 2px 5px #000);
 
             @media (min-width: 500px) {
-                max-width: 300px;
+                // max-width: 300px;
             }
         }
 
@@ -664,7 +732,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotateZ(0deg) rotateX(0deg);
-            animation: rotate 60s linear infinite;
+            // animation: rotate 60s linear infinite;
             object-fit: contain;
             z-index: 1;
             pointer-events: none;
@@ -681,124 +749,162 @@
         }
     }
 
-    .genus {
-        color: #676060;
-    }
-
     .types {
-        $icon-size: 30px;
-        --type-color: #fff;
+        $icon-size: 40px;
 
         display: flex;
         min-height: 1rem;
 
         .type-tag {
+            --type-color: #fff;
+
             position: relative;
             display: inline-flex;
-            clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-            // background: rgba(16, 16, 16, 0.5);
-            background: var(--type-color);
             flex: 1;
-            justify-content: flex-end;
 
             .icon {
                 position: relative;
                 width: $icon-size;
                 height: 100%;
-                left: 0;
-                top: 0;
                 fill: #fff;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 padding: 5px;
                 z-index: 2;
+                background: var(--type-color);
+
+                &::before {
+                    content: "";
+                    top: 0;
+                    position: absolute;
+                    width: 10px;
+                    background: var(--type-color);
+                    height: 100%;
+                    clip-path: polygon(0 0, 100% 50%, 0 100%);
+                }
             }
 
             .type-name {
+                position: relative;
                 display: inline-flex;
-                justify-content: center;
                 align-items: center;
                 font-weight: bold;
-                color: #000;
                 z-index: 1;
+                background: #060101b8;
+                padding: 0 20px;
+                flex: 1;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: var(--type-color);
+                    opacity: 0.2;
+                    pointer-events: none;
+                }
+
+                // border: 3px solid var(--type-color);
+                // border-bottom: 0;
             }
 
             &:nth-child(1) {
-                padding-right: 15px;
-                transform-origin: left;
+                flex-direction: row-reverse;
+
+                .icon {
+                    &::before {
+                        transform: rotateZ(180deg);
+                        right: 100%;
+                    }
+                }
+
+                .type-name {
+                    justify-content: flex-end;
+                    padding: 0 20px 0 0;
+                }
             }
 
             &:nth-child(2) {
-                flex-direction: row-reverse;
-                transform-origin: left;
+                justify-content: flex-start;
 
-                clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
-                padding-left: 15px;
+                .icon {
+                    &::before {
+                        left: 100%;
+                    }
+                }
+
+                .type-name {
+                    padding: 0 0 0 20px;
+                }
             }
-        }
 
-        &.single {
-            .type-tag {
-                &:nth-child(1) {
-                    // clip-path: polygon(
-                    //     0 0,
-                    //     100% 0,
-                    //     calc(100% - 10px) 100%,
-                    //     10px 100%
-                    // );
-                    clip-path: none;
-                    justify-content: center;
-                    padding-right: 0;
+            &:first-child:last-child {
+                flex-direction: row;
+
+                .icon {
+                    &::before {
+                        transform: none;
+                        left: 100%;
+                    }
+                }
+
+                .type-name {
+                    justify-content: flex-start;
+                    padding: 0 0 0 20px;
                 }
             }
         }
     }
 
     .metrics {
-        // margin: 0 0 0 5px;
+        padding: 10px 0 10px 0;
+        background: #292626;
 
         .body {
-            height: 100px;
-
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            justify-content: space-around;
         }
 
         .metric {
-            height: 100%;
-            width: 100px;
             color: #fff;
-            padding: 5px;
-            margin: 0 5px;
-            background-position: center bottom;
-            background-repeat: no-repeat;
-            background-size: contain;
+            text-align: end;
+            // background-position: center bottom;
+            // background-repeat: no-repeat;
+            // background-size: contain;
+            // text-shadow: 0 0 5px #000;
             // clip-path: polygon(10px 0, calc(100% - 10px));
+
+            h3 {
+                margin-bottom: 5px;
+            }
 
             h4 {
                 align-self: flex-end;
                 transform: translateY(-0.5rem);
-                text-shadow: 0 0 5px #000;
             }
         }
 
         .weight {
-            background-image: url("../assets/1x/weight.png");
+            // background-image: url("../assets/1x/weight.png");
         }
 
         .height {
-            background-image: url("../assets/1x/height3.png");
+            // background-image: url("../assets/1x/height3.png");
         }
     }
 
-    .flavor-text {
+    .pokemon-details {
         display: flex;
         flex-direction: column;
+        color: #d6d6d6;
 
         .flavor-text-wrapper {
-            border: 1px solid #504a4a4d;
             padding: 0 10px;
+            background: #292626;
+            font-style: italic;
         }
 
         .flavor-select-wrapper {
@@ -806,6 +912,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
+            background: #292626;
 
             span {
                 margin-right: 5px;
@@ -813,14 +920,15 @@
             }
 
             select {
-                // background: transparent;
-                // border: none;
+                background: #130f0f;
+                border: 0;
+                outline: none;
+                color: #d6d6d6;
             }
         }
 
         p {
             padding: 0 1.5rem;
-            font-style: italic;
         }
     }
 
@@ -830,12 +938,20 @@
             grid-template-rows: repeat(6, 1fr);
             grid-auto-columns: max-content 1fr;
             grid-auto-flow: row;
-            grid-gap: 0.25rem 0.5rem;
+            grid-gap: 0.5rem 0.5rem;
 
             label {
                 justify-self: end;
                 grid-column: 1;
                 font-weight: bold;
+                display: flex;
+                align-items: center;
+
+                .stat-icon {
+                    width: 30px;
+                    height: 30px;
+                    margin-left: 10px;
+                }
             }
 
             .bar {
@@ -903,12 +1019,25 @@
             position: relative;
             width: 100%;
             border-collapse: collapse;
+            border-spacing: 0.5rem;
 
             th {
                 position: sticky;
                 top: 0;
                 height: 1rem;
                 background: #fff;
+                padding: 1rem;
+            }
+
+            td {
+                padding: 1rem;
+            }
+
+            .col-md {
+                display: none;
+                @media (min-width: 600px) {
+                    display: table-cell;
+                }
             }
 
             .learn_method {
@@ -926,20 +1055,38 @@
         flex-direction: column;
 
         .row {
-            min-width: 100%;
             display: flex;
-            justify-content: space-between;
+            margin-bottom: 1rem;
+            width: 100%;
+            overflow: auto;
         }
 
-        .entry {
+        .evo-entry {
+            text-align: center;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+
+        img {
+            margin-top: auto;
+            height: 96px;
+            width: 96px;
+        }
+
+        .requirements {
         }
     }
 
     .gender-bar {
         --female-ratio: 0;
 
-        --male-tag-color: #62b4fb;
-        --female-tag-color: #ff4343;
+        --male-tag-color: #7a8bf9;
+        --female-tag-color: #f97c7a;
+        --genderless-tag-color: #f9f57a;
 
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -950,7 +1097,7 @@
             position: relative;
             width: 100%;
             height: 25px;
-            border: 1px solid rgb(102, 97, 97);
+            height: 100%;
             grid-area: 1 / 1 / 2 / 4;
 
             &:before {
@@ -983,17 +1130,16 @@
         .gender-tag {
             white-space: nowrap;
             font-weight: bold;
+            // text-shadow: 0 0 5px #000;
 
             &.text-male {
                 grid-area: 2 / 1;
-                // background: var(--male-tag-color);
-                padding-left: 5px;
+                color: var(--male-tag-color);
             }
             &.text-female {
                 grid-area: 2 / 3;
                 justify-self: end;
-                // background: var(--female-tag-color);
-                padding-right: 5px;
+                color: var(--female-tag-color);
             }
 
             &.text-genderless {
@@ -1007,7 +1153,7 @@
             .bar {
                 &:before {
                     transform-origin: center;
-                    background: grey;
+                    background: var(--genderless-tag-color);
                     transform: scaleX(1);
                 }
 
@@ -1061,5 +1207,60 @@
             height: 300px;
             filter: none;
         }
+    }
+
+    .text-crop {
+        @mixin text-crop(
+            $line-height: 1.3,
+            $top-adjustment: 0px,
+            $bottom-adjustment: 0px
+        ) {
+            // Configured in Step 1
+            $top-crop: 0;
+            $bottom-crop: 6;
+            $crop-font-size: 31;
+            $crop-line-height: 1.2;
+
+            // Apply values to calculate em-based margins that work with any font size
+            $dynamic-top-crop: max(
+                    (
+                        $top-crop + ($line-height - $crop-line-height) *
+                            ($crop-font-size / 2)
+                    ),
+                    0
+                ) / $crop-font-size;
+            $dynamic-bottom-crop: max(
+                    (
+                        $bottom-crop + ($line-height - $crop-line-height) *
+                            ($crop-font-size / 2)
+                    ),
+                    0
+                ) / $crop-font-size;
+
+            // Mixin output
+            line-height: $line-height;
+
+            &::before,
+            &::after {
+                content: "";
+                display: block;
+                height: 0;
+                width: 0;
+            }
+
+            &::before {
+                margin-bottom: calc(
+                    -#{$dynamic-top-crop}em + #{$top-adjustment}
+                );
+            }
+
+            &::after {
+                margin-top: calc(
+                    -#{$dynamic-bottom-crop}em + #{$bottom-adjustment}
+                );
+            }
+        }
+
+        @include text-crop();
     }
 </style>

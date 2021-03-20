@@ -65,7 +65,7 @@
 </script>
 
 <span
-    class="card"
+    class="card {data?.species && `bg-${data?.species.color.name}`}"
     class:active
     on:mouseenter={startTilt}
     on:mousemove={updateTilt}
@@ -93,7 +93,7 @@
                 </span>
             {/each}
         </div>
-        <small class="number text-faded"># {getNationalId(data.species)}</small>
+        <small class="number"># {getNationalId(data.species)}</small>
         <h4 class="name">{capitalize(data.species.name)}</h4>
         <div class="body">
             <img
@@ -135,7 +135,7 @@
         flex-direction: column;
         padding: 5px;
 
-        background: rgba(255, 255, 255, 0.25);
+        // background: rgba(255, 255, 255, 0.25);
         box-shadow: 0 8px 20px 0 rgba(135, 31, 113, 0.37);
         border-radius: 5px;
         font-weight: bold;
@@ -196,7 +196,8 @@
             width: 100%;
             height: 140px;
 
-            &::before {
+            &::before,
+            &::after {
                 $margin: 50px;
 
                 content: "";
@@ -208,9 +209,17 @@
                 // border: 1px solid rgba(0, 0, 0, 0.25);
                 border-radius: 50%;
                 // background: rgba(255, 255, 255, 0.25);
+            }
+
+            &::before {
                 background-image: url("../assets/1x/pokeball.png");
                 background-position: center;
                 background-size: cover;
+            }
+
+            &::after {
+                box-shadow: 0 0 30px #ffffff85;
+                z-index: -1;
             }
 
             img {
