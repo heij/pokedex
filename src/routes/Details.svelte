@@ -20,9 +20,12 @@
     import typeColors from "../data/typeColors.json";
     import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
+    import { afterUpdate } from "svelte";
+    import { tick } from "svelte";
     import { tweened } from "svelte/motion";
     import { expoOut, elasticOut, expoIn, quartOut } from "svelte/easing";
     import { send, receive } from "../animations/crossfade.js";
+    import { onResize } from "../utils/onResize";
 
     import { fly, slide, fade } from "svelte/transition";
 
@@ -173,7 +176,7 @@
 
         if (evoDetails) {
             evoDetails = Object.entries(evoDetails).reduce((res, [k, v]) => {
-                if (v) {
+                if (v || v === 0) {
                     res[k] = v;
                 }
                 return res;
@@ -186,6 +189,7 @@
             evolutionDetails: evoDetails,
             trigger: trigger,
             pokemonData: getPokemon(selfReference.name),
+            isBaby: chain.is_baby,
         });
 
         chain.evolves_to.forEach((c) => {
@@ -219,6 +223,7 @@
     let abilities = [];
     let types = [];
     let evolutionChain = [];
+    let evoBaby = false;
     let genus = "";
     let flavorsTexts = [];
     let currentFlavorVersion = "";
@@ -227,7 +232,6 @@
     let currentMovesetVersion = "";
     let currentMoveset = "";
     let movesets = {};
-    // let femaleRatio = -1;
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
     let sprite = "";
     let statIcons = [
@@ -254,6 +258,10 @@
             evolutionData = await fetchUrl(species.evolution_chain.url);
             evolutionChain = getEvolutionChain(evolutionData.chain);
 
+            if (evolutionChain[0][0].isBaby == true) {
+                evoBaby = true;
+            }
+
             nationalId = getNationalId(species);
             abilities = getAbilities(pokemon);
             types = getTypes(pokemon);
@@ -268,10 +276,74 @@
             stats.set(getStats(pokemon));
 
             resolve();
+
+            // setTimeout(() => {
+            //     drawEvoArrows();
+            // }, 2000);
+        });
+    }
+
+    function drawEvoArrows() {
+        let container = document.querySelector(".evolution-chain");
+        let canvas = document.querySelector("canvas.arrows");
+        let { width, height } = container.getBoundingClientRect();
+
+        canvas.width = width;
+        canvas.height = height;
+
+        let ctx = canvas.getContext("2d");
+        ctx.strokeStyle = "#000";
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        let rows = [...document.querySelectorAll(".evolution-chain .row")];
+
+        evolutionChain.forEach((tier, ti) => {
+            let rowH = rows[ti].offsetTop;
+
+            tier.forEach((pokemon) => {
+                if (!pokemon.evolvesFrom) return;
+                let curr = document.querySelector(`#evo-${pokemon.name}`);
+                let prev = document.querySelector(
+                    `#evo-${pokemon.evolvesFrom.name}`
+                );
+
+                let currBr = curr.getBoundingClientRect();
+                let prevBr = prev.getBoundingClientRect();
+
+                ctx.beginPath();
+                ctx.moveTo(
+                    prev.offsetLeft + prevBr.width / 2,
+                    prev.offsetTop + prevBr.height
+                );
+                ctx.lineTo(
+                    prev.offsetLeft + prevBr.width / 2,
+                    prev.offsetTop + prevBr.height + 20
+                );
+                ctx.lineTo(
+                    curr.offsetLeft + currBr.width / 2,
+                    prev.offsetTop + prevBr.height + 20
+                );
+                ctx.lineTo(
+                    curr.offsetLeft + currBr.width / 2,
+                    curr.offsetTop + rowH
+                );
+                ctx.stroke();
+            });
         });
     }
 
     let data = loadData();
+
+    onResize(() => {
+        if (!document.querySelector(".evolution-chain")) return;
+        drawEvoArrows();
+    });
+
+    // afterUpdate(() => {
+    //     if (!document.querySelector(".evolution-chain")) return;
+    //     console.log("t");
+    //     tick().then(drawEvoArrows());
+    // });
 </script>
 
 <svelte:window bind:innerWidth={windowX} />
@@ -371,11 +443,11 @@
                 <div class="metrics">
                     <div class="body">
                         <div class="metric height">
-                            <h3>HEIGHT</h3>
+                            <h4>HEIGHT</h4>
                             <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
                         </div>
                         <div class="metric weight">
-                            <h3>WEIGHT</h3>
+                            <h4>WEIGHT</h4>
                             <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
                         </div>
                     </div>
@@ -559,38 +631,51 @@
                     </table>
                 </div>
             </div>
-            <div class="evolution-chain section" />
         </div>
 
         <div class="panel-lg">
             <h3 class="title">EVOLUTION CHAIN</h3>
-            <div class="evolution-chain">
-                {#each evolutionChain as row}
+            <div class="evolution-chain" afterUpdate={() => console.log("aaa")}>
+                {#each evolutionChain as row, i}
                     <div class="row">
-                        {#each row as pokemon}
-                            <div class="evo-entry">
-                                <div class="requirements">
-                                    {#if pokemon.evolutionDetails}
-                                        {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
-                                            {#if i == 0}
-                                                <h4>{requirement}</h4>
-                                            {:else}
-                                                <p>{requirement}</p>
-                                            {/if}
-                                        {/each}
-                                    {/if}
+                        <div class="stage-label">
+                            <p>STAGE</p>
+                            {#if !evoBaby}
+                                <h3>{i + 1}</h3>
+                            {:else if i == 0}
+                                <h4>BABY</h4>
+                            {:else}
+                                <h3>{i}</h3>
+                            {/if}
+                        </div>
+                        <div class="stage-body">
+                            {#each row as pokemon}
+                                <div id="evo-{pokemon.name}" class="evo-entry">
+                                    <div class="requirements">
+                                        {#if pokemon.evolutionDetails}
+                                            {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
+                                                {#if i == 0}
+                                                    <h4>{requirement}</h4>
+                                                {:else}
+                                                    <p>{requirement}</p>
+                                                {/if}
+                                            {/each}
+                                        {/if}
+                                    </div>
+                                    {#await pokemon.pokemonData then data}
+                                        <img
+                                            src={data.sprites.front_default}
+                                            alt=""
+                                            use:drawEvoArrows
+                                        />
+                                    {/await}
+                                    <h3>{capitalize(pokemon.name)}</h3>
                                 </div>
-                                {#await pokemon.pokemonData then data}
-                                    <img
-                                        src={data.sprites.front_default}
-                                        alt=""
-                                    />
-                                {/await}
-                                <h3>{capitalize(pokemon.name)}</h3>
-                            </div>
-                        {/each}
+                            {/each}
+                        </div>
                     </div>
                 {/each}
+                <canvas class="arrows" />
             </div>
         </div>
     {:catch err}
@@ -902,7 +987,7 @@
         color: #d6d6d6;
 
         .flavor-text-wrapper {
-            padding: 0 10px;
+            padding: 10px 10px;
             background: #292626;
             font-style: italic;
         }
@@ -1051,24 +1136,54 @@
     }
 
     .evolution-chain {
-        display: flex;
-        flex-direction: column;
+        position: relative;
+        width: 100%;
+        // display: flex;
+        // flex-direction: column;
 
         .row {
+            position: relative;
             display: flex;
-            margin-bottom: 1rem;
+            flex-direction: row;
             width: 100%;
-            overflow: auto;
+            flex-wrap: wrap;
+            z-index: 2;
+
+            &:not(:first-child) {
+                margin-top: 50px;
+            }
+        }
+
+        .stage-label {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            flex-direction: column;
+            padding: 0 0px 0 10px;
+            margin-right: 20px;
+            border-left: 1px solid black;
+            border-bottom: 1px solid black;
+            border-top: 1px solid black;
+        }
+
+        .stage-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-column-gap: 1rem;
+            grid-row-gap: 1rem;
         }
 
         .evo-entry {
             text-align: center;
-            margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             flex: 1;
+            background: #fff;
+            box-shadow: 0 0 5px #000;
+            padding: 10px;
         }
 
         img {
@@ -1183,6 +1298,13 @@
                 display: none;
             }
         }
+    }
+
+    canvas.arrows {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1;
     }
 
     .skeleton-wrapper {
