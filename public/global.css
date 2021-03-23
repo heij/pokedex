@@ -3,16 +3,27 @@
 :root {
 	font-size: 62.5%;
 
-	--green: hsl(120, 50%, 70%);
+	--green: hsl(120, 30%, 70%);
 	--black: hsl(0, 0%, 40%);
-	--blue: hsl(199, 50%, 70%);
-	--brown: hsl(38, 50%, 70%);
-	--gray: hsl(120, 50%, 70%);
-	--pink: hsl(306, 50%, 70%);
-	--purple: hsl(274, 50%, 70%);
-	--red: hsl(0, 50%, 70%);
-	--white: hsl(0, 0%, 80%);
-	--yellow: hsl(60, 50%, 70%);
+	--blue: hsl(199, 30%, 70%);
+	--brown: hsl(38, 30%, 70%);
+	--gray: hsl(0, 0%, 75%);
+	--pink: hsl(306, 30%, 70%);
+	--purple: hsl(274, 30%, 70%);
+	--red: hsl(0, 30%, 70%);
+	--white: hsl(0, 0%, 90%);
+	--yellow: hsl(60, 30%, 70%);
+
+	--green-dark: hsl(120, 50%, 40%);
+	--black-dark: hsl(0, 0%, 20%);
+	--blue-dark: hsl(199, 50%, 40%);
+	--brown-dark: hsl(38, 50%, 40%);
+	--gray-dark: hsl(0, 0%, 55%);
+	--pink-dark: hsl(306, 50%, 40%);
+	--purple-dark: hsl(274, 50%, 40%);
+	--red-dark: hsl(0, 50%, 40%);
+	--white-dark: hsl(0, 0%, 70%);
+	--yellow-dark: hsl(60, 50%, 40%);
 }
 
 * {
@@ -116,12 +127,12 @@ h1 {
 .bg-green { 
 	background: var(--green); 
 } .bg-black { 
-	background: var(--black); 
+	background: var(--black);
 	color: hsl(0, 0%, 90%);
 } .bg-blue { 
 	background: var(--blue); 
 } .bg-brown { 
-	background: var(--brown); 
+	background: var(--brown);
 } .bg-gray { 
 	background: var(--gray); 
 } .bg-pink { 
@@ -134,6 +145,28 @@ h1 {
 	background: var(--white); 
 } .bg-yellow { 
 	background: var(--yellow); 
+}
+.bg-green-dark { 
+	background: var(--green-dark); 
+} .bg-black-dark { 
+	background: var(--black-dark);
+	color: hsl(0, 0%, 90%);
+} .bg-blue-dark { 
+	background: var(--blue-dark); 
+} .bg-brown-dark { 
+	background: var(--brown-dark);
+} .bg-gray-dark { 
+	background: var(--gray-dark); 
+} .bg-pink-dark { 
+	background: var(--pink-dark); 
+} .bg-purple-dark { 
+	background: var(--purple-dark);
+} .bg-red-dark { 
+	background: var(--red-dark); 
+} .bg-white-dark { 
+	background: var(--white-dark); 
+} .bg-yellow-dark { 
+	background: var(--yellow-dark); 
 }
 
 .color-green { 
@@ -156,4 +189,10 @@ h1 {
 	color: var(--white);
 } .color-yellow { 
 	color: var(--yellow);
+}
+
+.page-wrapper {
+	flex: 1;
+	overflow-x: hidden;
+	overflow-y: auto;
 }

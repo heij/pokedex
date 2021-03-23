@@ -24,7 +24,17 @@
 		position: relative;
 		min-height: 100vh;
 		width: 100%;
-		overflow-x: hidden;
+		// overflow: hidden;
 		background: #868686;
+
+		// height: 100vh;
+		// display: flex;
+		// flex-direction: column;
+	}
+
+	.page-wrapper {
+		flex: 1;
+		overflow-x: hidden;
+		overflow-y: auto;
 	}
 </style>

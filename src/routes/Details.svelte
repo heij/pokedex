@@ -20,8 +20,6 @@
     import typeColors from "../data/typeColors.json";
     import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
-    import { afterUpdate } from "svelte";
-    import { tick } from "svelte";
     import { tweened } from "svelte/motion";
     import { expoOut, elasticOut, expoIn, quartOut } from "svelte/easing";
     import { send, receive } from "../animations/crossfade.js";
@@ -230,7 +228,7 @@
     let currentFlavorText = "";
     let movesetVersions = [];
     let currentMovesetVersion = "";
-    let currentMoveset = "";
+    let currentMoveset = [];
     let movesets = {};
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
     let sprite = "";
@@ -244,9 +242,7 @@
     ];
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
-    $: currentMoveset = Object.entries(
-        sortMovesetByLearnMethod(movesets[currentMovesetVersion])
-    );
+    $: currentMoveset = movesets[currentMovesetVersion];
 
     function loadData() {
         return new Promise(async (resolve, reject) => {
@@ -332,18 +328,16 @@
         });
     }
 
-    let data = loadData();
+    let data;
+    // https://github.com/ItalyPaleAle/svelte-spa-router/issues/14#issuecomment-544532053
+    $: if (params.id) {
+        data = loadData();
+    }
 
     onResize(() => {
         if (!document.querySelector(".evolution-chain")) return;
         drawEvoArrows();
     });
-
-    // afterUpdate(() => {
-    //     if (!document.querySelector(".evolution-chain")) return;
-    //     console.log("t");
-    //     tick().then(drawEvoArrows());
-    // });
 </script>
 
 <svelte:window bind:innerWidth={windowX} />
@@ -419,7 +413,7 @@
             </div>
         </div>
     {:then}
-        <div class="panel">
+        <div class="panel bg-{species.color.name}-dark">
             <div class="id section">
                 <p class="national-id">{nationalId}</p>
                 <h2 class="name">{species.name.toUpperCase()}</h2>
@@ -433,10 +427,16 @@
                         (type, i) =>
                             `--type-color-${i + 1}: ${typeColors[type]};`
                     )
-                    .join("")}
+                    .join("") + `species-color: ${species.color.name}`}
             >
                 <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
                 <img class="sprite" src={sprite} alt="" />
+                <img
+                    class="shadow"
+                    src={sprite}
+                    alt=""
+                    style="--species-color: {species.color.name}"
+                />
             </div>
 
             <div class="pokemon-details section">
@@ -560,82 +560,84 @@
         <div class="panel-lg">
             <div class="moves section">
                 <h3 class="title">MOVES</h3>
-                <select name="" id="" bind:value={currentMovesetVersion}>
-                    {#each getMovesetVersions(pokemon) as version}
-                        <option value={version}>
-                            {versionGroupNames[version]}
-                        </option>
-                    {/each}
-                </select>
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Type</th>
-                                <th>Category</th>
+                                <th class="col-md">Category</th>
                                 <th class="col-md">Power</th>
-                                <th class="col-md">PP</th>
                                 <th class="col-md">Accuracy</th>
+                                <th class="col-md">PP</th>
                                 <th class="description">Description</th>
+                                <th>Learn Method</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {#each currentMoveset as [method, moveset]}
-                                <tr>
-                                    <td colspan="7" class="learn_method">
-                                        {capitalize(kebabToSpace(method))}
-                                    </td>
-                                </tr>
-                                {#each moveset as { move }}
-                                    {#await fetchUrl(move.url) then rawData}
-                                        {#each [parseMove(rawData)] as moveData}
-                                            <tr>
-                                                <td
-                                                    >{capitalize(
-                                                        kebabToSpace(move.name)
-                                                    )}</td
-                                                >
-                                                <td>
-                                                    <TypeIcon
-                                                        type={moveData.type
-                                                            .name}
-                                                    />
-                                                </td>
-                                                <td
-                                                    >{formatText(
-                                                        moveData.damage_class
+                            {#each currentMoveset as { move, version }}
+                                {#await fetchUrl(move.url) then rawData}
+                                    {#each [parseMove(rawData)] as moveData}
+                                        <tr>
+                                            <td
+                                                >{capitalize(
+                                                    kebabToSpace(move.name)
+                                                )}</td
+                                            >
+                                            <td>
+                                                <TypeIcon
+                                                    type={moveData.type.name}
+                                                />
+                                            </td>
+                                            <td class="col-md"
+                                                >{formatText(
+                                                    moveData.damage_class.name
+                                                )}</td
+                                            >
+                                            <td class="col-md"
+                                                >{moveData.power || 0}</td
+                                            >
+                                            <td class="col-md"
+                                                >{moveData.accuracy || "-"}</td
+                                            >
+                                            <td class="col-md">{moveData.pp}</td
+                                            >
+                                            <td class="description"
+                                                >{moveData.effect_entries[0]
+                                                    .short_effect}</td
+                                            >
+                                            <td>
+                                                {capitalize(
+                                                    kebabToSpace(
+                                                        version
+                                                            .move_learn_method
                                                             .name
-                                                    )}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.power || 0}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.pp}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.accuracy ||
-                                                        "-"}</td
-                                                >
-                                                <td class="description"
-                                                    >{moveData.effect_entries[0]
-                                                        .short_effect}</td
-                                                >
-                                            </tr>
-                                        {/each}
-                                    {/await}
-                                {/each}
+                                                    )
+                                                )}
+                                            </td>
+                                        </tr>
+                                    {/each}
+                                {/await}
                             {/each}
                         </tbody>
                     </table>
+                </div>
+                <div class="moveset-select-wrapper">
+                    <span>VERSION: </span>
+                    <select name="" id="" bind:value={currentMovesetVersion}>
+                        {#each getMovesetVersions(pokemon) as version}
+                            <option value={version}>
+                                {versionGroupNames[version]}
+                            </option>
+                        {/each}
+                    </select>
                 </div>
             </div>
         </div>
 
         <div class="panel-lg">
             <h3 class="title">EVOLUTION CHAIN</h3>
-            <div class="evolution-chain" afterUpdate={() => console.log("aaa")}>
+            <div class="evolution-chain">
                 {#each evolutionChain as row, i}
                     <div class="row">
                         <div class="stage-label">
@@ -715,7 +717,16 @@
         &:nth-child(1) {
             box-shadow: 5px 5px 10px #000;
             border-radius: 10px;
+            color: white;
             padding: 0;
+        }
+
+        &:nth-child(2) {
+            background: #292626;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            /* height: fit-content; */
         }
     }
 
@@ -731,6 +742,13 @@
         &:not(:first-child) {
             margin-top: 20px;
         }
+    }
+
+    select {
+        background: #130f0f;
+        border: 0;
+        outline: none;
+        color: #d6d6d6;
     }
 
     .id {
@@ -753,6 +771,7 @@
         margin: 10px 0 10px 0;
         font-weight: bold;
         background: #292626;
+        box-shadow: -2px 2px 3px #000;
     }
 
     .name {
@@ -762,6 +781,7 @@
         margin: 0 0 0 10px;
         background: #292626;
         color: #fff;
+        box-shadow: 3px 3px 5px #000;
     }
 
     .genus {
@@ -778,27 +798,6 @@
         z-index: 1;
         padding: 0 20px;
 
-        // &::before,
-        // &::after {
-        //     content: "";
-        //     position: absolute;
-        //     left: 50%;
-        //     top: 50%;
-        //     height: 300px;
-        //     width: 300px;
-        //     opacity: 0.5;
-        //     border-radius: 50%;
-        //     transform: translate(-50%, -50%);
-        // }
-
-        // &::before {
-        //     background-color: var(--type-color-1);
-        // }
-        // &::after {
-        //     background-color: var(--type-color-2);
-        //     clip-path: polygon(100% 0, 100% 100%, 0 100%);
-        // }
-
         .sprite {
             // max-width: 300px;
             width: 100%;
@@ -808,6 +807,22 @@
             @media (min-width: 500px) {
                 // max-width: 300px;
             }
+        }
+
+        .shadow {
+            --species-color: #000;
+
+            position: absolute;
+            width: 100%;
+            left: calc(50% + 20px);
+            top: calc(50% - 20px);
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            filter: brightness(0) opacity(0.4)
+                drop-shadow(0px 0px 0px var(--species-color))
+                drop-shadow(0px 0px 0px var(--species-color))
+                drop-shadow(0px 0px 0px var(--species-color)) blur(2px);
+            opacity: 0.8;
         }
 
         .bg {
@@ -1003,13 +1018,6 @@
                 margin-right: 5px;
                 font-weight: bold;
             }
-
-            select {
-                background: #130f0f;
-                border: 0;
-                outline: none;
-                color: #d6d6d6;
-            }
         }
 
         p {
@@ -1105,17 +1113,21 @@
             width: 100%;
             border-collapse: collapse;
             border-spacing: 0.5rem;
+            color: #fff;
 
             th {
                 position: sticky;
                 top: 0;
                 height: 1rem;
-                background: #fff;
+                background: #130f0f;
+                color: #fff;
                 padding: 1rem;
+                text-align: left;
             }
 
             td {
                 padding: 1rem;
+                background: #292626;
             }
 
             .col-md {
@@ -1124,13 +1136,18 @@
                     display: table-cell;
                 }
             }
+        }
 
-            .learn_method {
-                text-align: center;
+        .moveset-select-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            background: #292626;
+            color: white;
+
+            span {
+                margin-right: 5px;
                 font-weight: bold;
-                position: sticky;
-                top: calc(1.4rem + 0.25vw);
-                background: #fff;
             }
         }
     }
@@ -1181,7 +1198,8 @@
             justify-content: center;
             align-items: center;
             flex: 1;
-            background: #fff;
+            background: #292626;
+            color: #fff;
             box-shadow: 0 0 5px #000;
             padding: 10px;
         }

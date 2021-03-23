@@ -61,7 +61,8 @@
         rows = Math.ceil(speciesReference.length / cardsInRow);
 
         let gridLeftMargin = gridPadding + ((rowFitRatio % 1) * cardWidth) / 2;
-        gridHeight = gridPadding * 2 + rows * cardHeight + gridGap * (rows - 1);
+        gridHeight =
+            gridLeftMargin * 2 + rows * cardHeight + gridGap * (rows - 1);
 
         let colLeftValues = Array(cardsInRow)
             .fill(1)
@@ -136,6 +137,10 @@
     on:resize={onResize}
     bind:scrollY={scrollTop}
 />
+
+<div>
+    <input type="text" id="search-bar" placeholder />
+</div>
 
 <div
     bind:this={grid}
