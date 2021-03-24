@@ -342,347 +342,400 @@
 
 <svelte:window bind:innerWidth={windowX} />
 
-<div
-    class="details {species && `bg-${species.color.name}`}"
-    transition:fly|local={{
-        x: window.innerWidth,
-        duration: 500,
-        easing: expoIn,
-    }}
->
-    {#await data}
-        <div
-            class="skeleton-wrapper"
-            transition:fade={{ duration: 500, easing: expoOut }}
-        >
-            <div class="panel">
+<div class="page">
+    <div
+        class="details {species && `bg-${species.color.name}`}"
+        transition:fly|local={{
+            x: window.innerWidth,
+            duration: 500,
+            easing: expoIn,
+        }}
+    >
+        {#await data}
+            <div
+                class="skeleton-wrapper"
+                transition:fade={{ duration: 500, easing: expoOut }}
+            >
+                <div class="panel">
+                    <div class="id section">
+                        <SkeletonText tag="div" effect="pulse"
+                            >0000</SkeletonText
+                        >
+                        <h2 class="name">
+                            <SkeletonText tag="div" effect="pulse"
+                                >POKEMON</SkeletonText
+                            >
+                        </h2>
+                        <h4 class="genus">
+                            <SkeletonText tag="div" effect="pulse"
+                                >POKEMON</SkeletonText
+                            >
+                        </h4>
+                    </div>
+
+                    <div class="img-wrapper section">
+                        <SkeletonBlock
+                            width="100%"
+                            height="100%"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="types section">
+                        <SkeletonBlock
+                            width="100%"
+                            height="50px"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="flavor-text section">
+                        <SkeletonBlock
+                            width="100%"
+                            height="100px"
+                            effect="pulse"
+                        />
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="abilities section">
+                        <h3 class="title">ABILITIES</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="100px"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="stats section">
+                        <h3 class="title">STATS</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="150px"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="gender section">
+                        <h3 class="title">GENDER RATIO</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="100px"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="metrics section">
+                        <h3 class="title">MEASUREMENTS</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="150px"
+                            effect="pulse"
+                        />
+                    </div>
+                </div>
+
+                <div class="panel-lg">
+                    <div class="moves section">
+                        <h3 class="title">MOVES</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="500px"
+                            effect="pulse"
+                        />
+                    </div>
+                </div>
+            </div>
+        {:then}
+            <div class="panel bg-{species.color.name}-dark">
                 <div class="id section">
-                    <SkeletonText tag="div" effect="pulse">0000</SkeletonText>
-                    <h2 class="name">
-                        <SkeletonText tag="div" effect="pulse"
-                            >POKEMON</SkeletonText
-                        >
-                    </h2>
-                    <h4 class="genus">
-                        <SkeletonText tag="div" effect="pulse"
-                            >POKEMON</SkeletonText
-                        >
-                    </h4>
+                    <p class="national-id">{nationalId}</p>
+                    <h2 class="name">{species.name.toUpperCase()}</h2>
+                    <h4 class="genus">{genus}</h4>
                 </div>
 
-                <div class="img-wrapper section">
-                    <SkeletonBlock width="100%" height="100%" effect="pulse" />
+                <div
+                    class="img-wrapper section"
+                    style={types
+                        .map(
+                            (type, i) =>
+                                `--type-color-${i + 1}: ${typeColors[type]};`
+                        )
+                        .join("") + `species-color: ${species.color.name}`}
+                >
+                    <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
+                    <img class="sprite" src={sprite} alt="" />
+                    <img
+                        class="shadow"
+                        src={sprite}
+                        alt=""
+                        style="--species-color: {species.color.name}"
+                    />
                 </div>
 
-                <div class="types section">
-                    <SkeletonBlock width="100%" height="50px" effect="pulse" />
-                </div>
+                <div class="pokemon-details section">
+                    <div class="metrics">
+                        <div class="body">
+                            <div class="metric height">
+                                <h4>HEIGHT</h4>
+                                <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
+                            </div>
+                            <div class="metric weight">
+                                <h4>WEIGHT</h4>
+                                <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="types"
+                        class:single={types.length == 1}
+                        class:double={types.length == 2}
+                    >
+                        {#each types as type, i}
+                            <div
+                                class="type-tag {type}"
+                                style="--type-color: {typeColors[type]}"
+                            >
+                                <div class="icon">
+                                    <TypeIcon {type} color="#000" />
+                                </div>
+                                <p class="type-name text-crop">
+                                    {type.toUpperCase()}
+                                </p>
+                            </div>
+                        {/each}
+                    </div>
+                    <div class="flavor-text-wrapper">
+                        <h2 class="text-crop">“</h2>
+                        <p>
+                            {clearLinebreaks(currentFlavorText)}
+                        </p>
+                        <h2 class="text-crop" style="text-align: end;">”</h2>
+                    </div>
+                    <div class="flavor-select-wrapper">
+                        <span>VERSION: </span>
 
-                <div class="flavor-text section">
-                    <SkeletonBlock width="100%" height="100px" effect="pulse" />
+                        <select name="" id="" bind:value={currentFlavorVersion}>
+                            {#each getFlavorVersions(species) as { version }}
+                                <option value={version.name}>
+                                    {capitalize(kebabToSpace(version.name))}
+                                </option>
+                            {/each}
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <div class="panel">
                 <div class="abilities section">
                     <h3 class="title">ABILITIES</h3>
-                    <SkeletonBlock width="100%" height="100px" effect="pulse" />
+                    <div class="abilities-body">
+                        {#each abilities as ability}
+                            <div class="hidden-tag center-content">
+                                <small
+                                    >{ability.is_hidden ? "HIDDEN" : ""}</small
+                                >
+                            </div>
+                            <div
+                                class="ability center-content"
+                                class:hidden={ability.is_hidden}
+                            >
+                                {kebabToSpace(ability.name).toUpperCase()}
+                            </div>
+                        {/each}
+                    </div>
                 </div>
 
                 <div class="stats section">
                     <h3 class="title">STATS</h3>
-                    <SkeletonBlock width="100%" height="150px" effect="pulse" />
+                    <div class="stats-body">
+                        {#each Object.entries(statLabels) as [stat, { sm, md }], i}
+                            <label for={stat}>
+                                <span class="stat-name">
+                                    {windowX > 600
+                                        ? kebabToSpace(md).toUpperCase()
+                                        : kebabToSpace(sm).toUpperCase()}
+                                </span>
+                                <img
+                                    class="stat-icon"
+                                    src={statIcons[i]}
+                                    alt=""
+                                />
+                            </label>
+                            <span
+                                class="bar {stat}"
+                                style="--color-progress: {getStatProgress(
+                                    $stats[stat].toFixed(0)
+                                )}; 
+                            --bar-progress: {getStatBarProgress(
+                                    $stats[stat].toFixed(0)
+                                )}"
+                            />
+                            <p class="value">{$stats[stat].toFixed(0)}</p>
+                        {/each}
+                    </div>
                 </div>
 
                 <div class="gender section">
                     <h3 class="title">GENDER RATIO</h3>
-                    <SkeletonBlock width="100%" height="100px" effect="pulse" />
-                </div>
-
-                <div class="metrics section">
-                    <h3 class="title">MEASUREMENTS</h3>
-                    <SkeletonBlock width="100%" height="150px" effect="pulse" />
+                    <div
+                        class="gender-bar"
+                        class:genderless={$femaleRatio < 0}
+                        class:female-only={$femaleRatio === 1}
+                        class:male-only={$femaleRatio === 0}
+                        style="--female-ratio: {$femaleRatio}"
+                    >
+                        <span class="bar" />
+                        <p class="gender-tag text-male">
+                            {((1 - $femaleRatio) * 100).toFixed(2)}% MALE
+                        </p>
+                        <p class="gender-tag text-genderless">GENDERLESS</p>
+                        <p class="gender-tag text-female">
+                            {($femaleRatio * 100).toFixed(2)}% FEMALE
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div class="panel-lg">
                 <div class="moves section">
                     <h3 class="title">MOVES</h3>
-                    <SkeletonBlock width="100%" height="500px" effect="pulse" />
-                </div>
-            </div>
-        </div>
-    {:then}
-        <div class="panel bg-{species.color.name}-dark">
-            <div class="id section">
-                <p class="national-id">{nationalId}</p>
-                <h2 class="name">{species.name.toUpperCase()}</h2>
-                <h4 class="genus">{genus}</h4>
-            </div>
-
-            <div
-                class="img-wrapper section"
-                style={types
-                    .map(
-                        (type, i) =>
-                            `--type-color-${i + 1}: ${typeColors[type]};`
-                    )
-                    .join("") + `species-color: ${species.color.name}`}
-            >
-                <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
-                <img class="sprite" src={sprite} alt="" />
-                <img
-                    class="shadow"
-                    src={sprite}
-                    alt=""
-                    style="--species-color: {species.color.name}"
-                />
-            </div>
-
-            <div class="pokemon-details section">
-                <div class="metrics">
-                    <div class="body">
-                        <div class="metric height">
-                            <h4>HEIGHT</h4>
-                            <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
-                        </div>
-                        <div class="metric weight">
-                            <h4>WEIGHT</h4>
-                            <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="types"
-                    class:single={types.length == 1}
-                    class:double={types.length == 2}
-                >
-                    {#each types as type, i}
-                        <div
-                            class="type-tag {type}"
-                            style="--type-color: {typeColors[type]}"
-                        >
-                            <div class="icon">
-                                <TypeIcon {type} color="#000" />
-                            </div>
-                            <p class="type-name text-crop">
-                                {type.toUpperCase()}
-                            </p>
-                        </div>
-                    {/each}
-                </div>
-                <div class="flavor-text-wrapper">
-                    <h2 class="text-crop">“</h2>
-                    <p>
-                        {clearLinebreaks(currentFlavorText)}
-                    </p>
-                    <h2 class="text-crop" style="text-align: end;">”</h2>
-                </div>
-                <div class="flavor-select-wrapper">
-                    <span>VERSION: </span>
-
-                    <select name="" id="" bind:value={currentFlavorVersion}>
-                        {#each getFlavorVersions(species) as { version }}
-                            <option value={version.name}>
-                                {capitalize(kebabToSpace(version.name))}
-                            </option>
-                        {/each}
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="abilities section">
-                <h3 class="title">ABILITIES</h3>
-                <div class="abilities-body">
-                    {#each abilities as ability}
-                        <div class="hidden-tag center-content">
-                            <small>{ability.is_hidden ? "HIDDEN" : ""}</small>
-                        </div>
-                        <div
-                            class="ability center-content"
-                            class:hidden={ability.is_hidden}
-                        >
-                            {kebabToSpace(ability.name).toUpperCase()}
-                        </div>
-                    {/each}
-                </div>
-            </div>
-
-            <div class="stats section">
-                <h3 class="title">STATS</h3>
-                <div class="stats-body">
-                    {#each Object.entries(statLabels) as [stat, { sm, md }], i}
-                        <label for={stat}>
-                            <span class="stat-name">
-                                {windowX > 600
-                                    ? kebabToSpace(md).toUpperCase()
-                                    : kebabToSpace(sm).toUpperCase()}
-                            </span>
-                            <img class="stat-icon" src={statIcons[i]} alt="" />
-                        </label>
-                        <span
-                            class="bar {stat}"
-                            style="--color-progress: {getStatProgress(
-                                $stats[stat].toFixed(0)
-                            )}; 
-                            --bar-progress: {getStatBarProgress(
-                                $stats[stat].toFixed(0)
-                            )}"
-                        />
-                        <p class="value">{$stats[stat].toFixed(0)}</p>
-                    {/each}
-                </div>
-            </div>
-
-            <div class="gender section">
-                <h3 class="title">GENDER RATIO</h3>
-                <div
-                    class="gender-bar"
-                    class:genderless={$femaleRatio < 0}
-                    class:female-only={$femaleRatio === 1}
-                    class:male-only={$femaleRatio === 0}
-                    style="--female-ratio: {$femaleRatio}"
-                >
-                    <span class="bar" />
-                    <p class="gender-tag text-male">
-                        {((1 - $femaleRatio) * 100).toFixed(2)}% MALE
-                    </p>
-                    <p class="gender-tag text-genderless">GENDERLESS</p>
-                    <p class="gender-tag text-female">
-                        {($femaleRatio * 100).toFixed(2)}% FEMALE
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel-lg">
-            <div class="moves section">
-                <h3 class="title">MOVES</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th class="col-md">Category</th>
-                                <th class="col-md">Power</th>
-                                <th class="col-md">Accuracy</th>
-                                <th class="col-md">PP</th>
-                                <th class="description">Description</th>
-                                <th>Learn Method</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each currentMoveset as { move, version }}
-                                {#await fetchUrl(move.url) then rawData}
-                                    {#each [parseMove(rawData)] as moveData}
-                                        <tr>
-                                            <td
-                                                >{capitalize(
-                                                    kebabToSpace(move.name)
-                                                )}</td
-                                            >
-                                            <td>
-                                                <TypeIcon
-                                                    type={moveData.type.name}
-                                                />
-                                            </td>
-                                            <td class="col-md"
-                                                >{formatText(
-                                                    moveData.damage_class.name
-                                                )}</td
-                                            >
-                                            <td class="col-md"
-                                                >{moveData.power || 0}</td
-                                            >
-                                            <td class="col-md"
-                                                >{moveData.accuracy || "-"}</td
-                                            >
-                                            <td class="col-md">{moveData.pp}</td
-                                            >
-                                            <td class="description"
-                                                >{moveData.effect_entries[0]
-                                                    .short_effect}</td
-                                            >
-                                            <td>
-                                                {capitalize(
-                                                    kebabToSpace(
-                                                        version
-                                                            .move_learn_method
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th class="col-md">Category</th>
+                                    <th class="col-md">Power</th>
+                                    <th class="col-md">Accuracy</th>
+                                    <th class="col-md">PP</th>
+                                    <th class="description">Description</th>
+                                    <th>Learn Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each currentMoveset as { move, version }}
+                                    {#await fetchUrl(move.url) then rawData}
+                                        {#each [parseMove(rawData)] as moveData}
+                                            <tr>
+                                                <td
+                                                    >{capitalize(
+                                                        kebabToSpace(move.name)
+                                                    )}</td
+                                                >
+                                                <td>
+                                                    <TypeIcon
+                                                        type={moveData.type
+                                                            .name}
+                                                    />
+                                                </td>
+                                                <td class="col-md"
+                                                    >{formatText(
+                                                        moveData.damage_class
                                                             .name
-                                                    )
-                                                )}
-                                            </td>
-                                        </tr>
-                                    {/each}
-                                {/await}
-                            {/each}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="moveset-select-wrapper">
-                    <span>VERSION: </span>
-                    <select name="" id="" bind:value={currentMovesetVersion}>
-                        {#each getMovesetVersions(pokemon) as version}
-                            <option value={version}>
-                                {versionGroupNames[version]}
-                            </option>
-                        {/each}
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel-lg">
-            <h3 class="title">EVOLUTION CHAIN</h3>
-            <div class="evolution-chain">
-                {#each evolutionChain as row, i}
-                    <div class="row">
-                        <div class="stage-label">
-                            <p>STAGE</p>
-                            {#if !evoBaby}
-                                <h3>{i + 1}</h3>
-                            {:else if i == 0}
-                                <h4>BABY</h4>
-                            {:else}
-                                <h3>{i}</h3>
-                            {/if}
-                        </div>
-                        <div class="stage-body">
-                            {#each row as pokemon}
-                                <div id="evo-{pokemon.name}" class="evo-entry">
-                                    <div class="requirements">
-                                        {#if pokemon.evolutionDetails}
-                                            {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
-                                                {#if i == 0}
-                                                    <h4>{requirement}</h4>
-                                                {:else}
-                                                    <p>{requirement}</p>
-                                                {/if}
-                                            {/each}
-                                        {/if}
-                                    </div>
-                                    {#await pokemon.pokemonData then data}
-                                        <img
-                                            src={data.sprites.front_default}
-                                            alt=""
-                                            use:drawEvoArrows
-                                        />
+                                                    )}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.power || 0}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.accuracy ||
+                                                        "-"}</td
+                                                >
+                                                <td class="col-md"
+                                                    >{moveData.pp}</td
+                                                >
+                                                <td class="description"
+                                                    >{moveData.effect_entries[0]
+                                                        .short_effect}</td
+                                                >
+                                                <td>
+                                                    {capitalize(
+                                                        kebabToSpace(
+                                                            version
+                                                                .move_learn_method
+                                                                .name
+                                                        )
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        {/each}
                                     {/await}
-                                    <h3>{capitalize(pokemon.name)}</h3>
-                                </div>
-                            {/each}
-                        </div>
+                                {/each}
+                            </tbody>
+                        </table>
                     </div>
-                {/each}
-                <canvas class="arrows" />
+                    <div class="moveset-select-wrapper">
+                        <span>VERSION: </span>
+                        <select
+                            name=""
+                            id=""
+                            bind:value={currentMovesetVersion}
+                        >
+                            {#each getMovesetVersions(pokemon) as version}
+                                <option value={version}>
+                                    {versionGroupNames[version]}
+                                </option>
+                            {/each}
+                        </select>
+                    </div>
+                </div>
             </div>
-        </div>
-    {:catch err}
-        <p>There was an error loading this pokemon</p>
-    {/await}
+
+            <div class="panel-lg">
+                <h3 class="title">EVOLUTION CHAIN</h3>
+                <div class="evolution-chain">
+                    {#each evolutionChain as row, i}
+                        <div class="row">
+                            <div class="stage-label">
+                                <p>STAGE</p>
+                                {#if !evoBaby}
+                                    <h3>{i + 1}</h3>
+                                {:else if i == 0}
+                                    <h4>BABY</h4>
+                                {:else}
+                                    <h3>{i}</h3>
+                                {/if}
+                            </div>
+                            <div class="stage-body">
+                                {#each row as pokemon}
+                                    <div
+                                        id="evo-{pokemon.name}"
+                                        class="evo-entry"
+                                    >
+                                        <div class="requirements">
+                                            {#if pokemon.evolutionDetails}
+                                                {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
+                                                    {#if i == 0}
+                                                        <h4>{requirement}</h4>
+                                                    {:else}
+                                                        <p>{requirement}</p>
+                                                    {/if}
+                                                {/each}
+                                            {/if}
+                                        </div>
+                                        {#await pokemon.pokemonData then data}
+                                            <img
+                                                src={data.sprites.front_default}
+                                                alt=""
+                                                use:drawEvoArrows
+                                            />
+                                        {/await}
+                                        <h3>{capitalize(pokemon.name)}</h3>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    {/each}
+                    <canvas class="arrows" />
+                </div>
+            </div>
+        {:catch err}
+            <p>There was an error loading this pokemon</p>
+        {/await}
+    </div>
 </div>
 
 <style lang="scss">

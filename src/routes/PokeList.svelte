@@ -6,23 +6,30 @@
         getPokemon,
     } from "../services/pokeapi.js";
     import throttle from "just-throttle";
+    import debounce from "just-debounce-it";
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
     import { expoIn } from "svelte/easing";
 
     let speciesReference = [];
+    let filtered = [];
     let visible = [];
     let pokemonData = [];
 
     let visibleStartIndex = 0;
     let visibleEndIndex = 0;
 
+    let viewHeight = 0;
     let grid;
     let gridHeight;
     let gridWidth;
-    let scrollTop;
+    let gridLeftMargin;
+    let scrollY = 0;
     let cardsInRow;
     let rows;
+    let searchQuery = "";
+    let type1Query;
+    let type2Query;
 
     let gridGap = 20;
     let gridPadding = 20;
@@ -31,11 +38,12 @@
     let rowBuffer = 1;
 
     let onResize = throttle((e) => {
-        setGrid();
+        speciesReference = filtered = setGrid(speciesReference);
         updateGrid();
     }, 200);
 
     let onScroll = throttle((e) => {
+        scrollY = e.target.scrollTop;
         updateGrid();
     }, 200);
 
@@ -47,20 +55,20 @@
 
         pokemonData = Array(speciesReference.length).fill();
 
-        setGrid();
+        speciesReference = filtered = setGrid(speciesReference);
         updateGrid();
     });
 
-    function setGrid() {
+    function setGrid(pokemonList) {
         gridWidth = grid.getBoundingClientRect().width;
 
         let usableWidth = gridWidth - gridPadding * 2;
         let rowFitRatio = (usableWidth + gridGap) / (cardWidth + gridGap);
 
         cardsInRow = Math.floor(rowFitRatio);
-        rows = Math.ceil(speciesReference.length / cardsInRow);
+        rows = Math.ceil(pokemonList.length / cardsInRow);
 
-        let gridLeftMargin = gridPadding + ((rowFitRatio % 1) * cardWidth) / 2;
+        gridLeftMargin = gridPadding + ((rowFitRatio % 1) * cardWidth) / 2;
         gridHeight =
             gridLeftMargin * 2 + rows * cardHeight + gridGap * (rows - 1);
 
@@ -71,7 +79,7 @@
             .fill(1)
             .map((x, i) => gridLeftMargin + cardHeight * i + gridGap * i);
 
-        speciesReference = speciesReference.map((s, i) => {
+        return pokemonList.map((s, i) => {
             let row = Math.floor(i / cardsInRow);
             let col = i % cardsInRow;
 
@@ -84,24 +92,27 @@
         });
     }
 
-    function updateGrid() {
+    function updateGrid(forceUpdate = false) {
         let startRow = Math.floor(
             (scrollY + gridPadding) / (cardHeight + gridGap)
         );
 
         let endRow = Math.ceil(
-            (scrollY + gridPadding + window.innerHeight) /
-                (cardHeight + gridGap)
+            (scrollY + gridPadding + viewHeight) / (cardHeight + gridGap)
         );
 
         let startIndex = Math.max(startRow - rowBuffer, 0) * cardsInRow;
         let endIndex = Math.min(endRow + rowBuffer, rows) * cardsInRow;
 
-        if (visibleStartIndex != startIndex || visibleEndIndex != endIndex) {
+        if (
+            forceUpdate ||
+            visibleStartIndex != startIndex ||
+            visibleEndIndex != endIndex
+        ) {
             visibleStartIndex = startIndex;
             visibleEndIndex = endIndex;
 
-            visible = speciesReference.slice(startIndex, endIndex);
+            visible = filtered.slice(startIndex, endIndex);
             visible.forEach(async (v) => {
                 if (pokemonData[v.index]) {
                     return;
@@ -120,6 +131,17 @@
         }
     }
 
+    let filterList = debounce(() => {
+        filtered = searchQuery
+            ? setGrid(
+                  speciesReference.filter((s) =>
+                      s.name.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+              )
+            : setGrid(speciesReference);
+        updateGrid(true);
+    }, 400);
+
     function chunk(array, size) {
         // This prevents infinite loops
         if (size < 1) throw new Error("Size must be positive");
@@ -132,39 +154,66 @@
     }
 </script>
 
-<svelte:window
-    on:scroll={onScroll}
-    on:resize={onResize}
-    bind:scrollY={scrollTop}
-/>
+<svelte:window />
 
-<div>
-    <input type="text" id="search-bar" placeholder />
+<div class="search-wrapper">
+    <h4 class="title">Search</h4>
+    <input
+        type="text"
+        id="search-bar"
+        placeholder="Name"
+        bind:value={searchQuery}
+        on:keyup={filterList}
+    />
+    <!-- <select name="" id="">
+        <option value="" disabled hidden selected>Type</option>
+    </select> -->
 </div>
 
 <div
-    bind:this={grid}
-    class="grid-list"
-    style="height: {gridHeight}px;"
-    transition:fly|local={{
-        x: -window.innerWidth,
-        duration: 500,
-        easing: expoIn,
-    }}
+    on:scroll={onScroll}
+    on:resize={onResize}
+    bind:clientHeight={viewHeight}
+    class="virtual-wrapper"
 >
-    {#each visible as pokemon (pokemon.index)}
-        <Pokecard
-            pokemonName={speciesReference[pokemon.index].name}
-            data={pokemonData[pokemon.index]}
-            cardLeft={pokemon.left}
-            cardTop={pokemon.top}
-        />
-    {/each}
+    <div
+        bind:this={grid}
+        class="grid-list"
+        style="height: {gridHeight}px;"
+        transition:fly|local={{
+            x: -window.innerWidth,
+            duration: 500,
+            easing: expoIn,
+        }}
+    >
+        {#each visible as pokemon (pokemon.index)}
+            <Pokecard
+                pokemonName={speciesReference[pokemon.index].name}
+                data={pokemonData[pokemon.index]}
+                cardLeft={pokemon.left}
+                cardTop={pokemon.top}
+            />
+        {/each}
+    </div>
 </div>
 
 <style lang="scss">
+    .virtual-wrapper {
+        height: 100%;
+        overflow: auto;
+        will-change: transform;
+    }
     .grid-list {
         position: relative;
         background: #868686;
+    }
+
+    .search-wrapper {
+        background: #212020;
+        padding: 10px 20px 20px 20px;
+        color: white;
+        .title {
+            padding: 5px 0;
+        }
     }
 </style>

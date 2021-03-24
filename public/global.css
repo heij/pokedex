@@ -191,8 +191,9 @@ h1 {
 	color: var(--yellow);
 }
 
-.page-wrapper {
-	flex: 1;
-	overflow-x: hidden;
-	overflow-y: auto;
+.page {
+	position: relative;
+	height: 100%;
+	overflow: hidden auto;
+	will-change: transform;
 }
