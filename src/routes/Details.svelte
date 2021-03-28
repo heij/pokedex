@@ -709,9 +709,10 @@
                             </div>
                             <div class="stage-body">
                                 {#each row as pokemon}
-                                    <div
+                                    <a
                                         id="evo-{pokemon.name}"
                                         class="evo-entry"
+                                        href="/#/pokemon/{pokemon.name}"
                                     >
                                         <div class="requirements">
                                             {#if pokemon.evolutionDetails}
@@ -732,7 +733,7 @@
                                             />
                                         {/await}
                                         <h3>{capitalize(pokemon.name)}</h3>
-                                    </div>
+                                    </a>
                                 {/each}
                             </div>
                         </div>
@@ -1161,12 +1162,19 @@
         }
 
         .ability {
-            padding: 10px;
+            padding: 5px;
             text-align: center;
-            background: #130f0f;
+            background: #423e3e;
+            transition: background 0.2s ease-out;
 
             &.hidden {
-                background: #6d6d6d;
+                background: none;
+                border: 1px solid #8e8e8e;
+            }
+
+            &:hover {
+                background: #ffffff;
+                color: #000;
             }
         }
     }
@@ -1277,6 +1285,12 @@
             color: #fff;
             box-shadow: 0 0 5px #000;
             padding: 10px;
+            text-decoration: none;
+            transition: background 0.2s ease-out;
+
+            &:hover {
+                background: #151313;
+            }
         }
 
         img {

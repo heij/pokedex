@@ -13,12 +13,12 @@
 </script>
 
 <div class="header">
-    <h3>{kebabToSpace(move.name).toUpperCase()}</h3>
+    <h2>{kebabToSpace(move.name).toUpperCase()}</h2>
 </div>
 
 <div class="body">
     <div class="content">
-        {clearLinebreaks(move.effect_entries[0].effect)}
+        <p>{move.effect_entries[0].effect}</p>
     </div>
     <h3>TYPE</h3>
     <div class="content icon-wrapper">
@@ -45,6 +45,7 @@
     }
 
     .content {
+        white-space: pre-wrap;
         margin-bottom: 10px;
     }
 </style>
