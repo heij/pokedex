@@ -16,7 +16,10 @@
         getMove,
         fetchUrl,
     } from "../services/pokeapi.js";
-    import TypeIcon from "../components/typeIcon.svelte";
+    import TypeIcon from "../components/TypeIcon.svelte";
+    import AbilityModal from "../components/AbilityModal.svelte";
+    import MoveModal from "../components/MoveModal.svelte";
+    import Modal from "../components/Modal.svelte";
     import typeColors from "../data/typeColors.json";
     import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
@@ -81,6 +84,7 @@
             return {
                 name: a.ability.name,
                 is_hidden: a.is_hidden,
+                url: a.ability.url,
             };
         });
     }
@@ -143,10 +147,6 @@
 
             return res;
         }, {});
-    }
-
-    function getMoveData(moves) {
-        return moves.map((m) => getMove(m.url));
     }
 
     function getEvolutionChain(
@@ -233,19 +233,19 @@
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
     let sprite = "";
     let statIcons = [
-        "../assets/1x/hp.png",
-        "../assets/1x/atk.png",
-        "../assets/1x/def.png",
-        "../assets/1x/sp_atk.png",
-        "../assets/1x/sp_def.png",
-        "../assets/1x/spe.png",
+        "../assets/1x/hp_light.png",
+        "../assets/1x/atk_light.png",
+        "../assets/1x/def_light.png",
+        "../assets/1x/sp_atk_light.png",
+        "../assets/1x/sp_def_light.png",
+        "../assets/1x/spe_light.png",
     ];
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
     $: currentMoveset = movesets[currentMovesetVersion];
 
     function loadData() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve) => {
             [pokemon, species] = await Promise.all([
                 getPokemon(params.id),
                 getSpecies(params.id),
@@ -338,19 +338,22 @@
         if (!document.querySelector(".evolution-chain")) return;
         drawEvoArrows();
     });
+
+    let abilityModal;
+    let moveModal;
 </script>
 
 <svelte:window bind:innerWidth={windowX} />
 
-<div class="page">
-    <div
-        class="details {species && `bg-${species.color.name}`}"
-        transition:fly|local={{
-            x: window.innerWidth,
-            duration: 500,
-            easing: expoIn,
-        }}
-    >
+<div
+    class="page"
+    transition:fly|local={{
+        x: window.innerWidth,
+        duration: 500,
+        easing: expoIn,
+    }}
+>
+    <div class="details {species && `bg-${species.color.name}`}">
         {#await data}
             <div
                 class="skeleton-wrapper"
@@ -448,7 +451,7 @@
                 </div>
             </div>
         {:then}
-            <div class="panel bg-{species.color.name}-dark">
+            <div class="panel bg-grad-{species.color.name}-dark">
                 <div class="id section">
                     <p class="national-id">{nationalId}</p>
                     <h2 class="name">{species.name.toUpperCase()}</h2>
@@ -514,7 +517,7 @@
                         <h2 class="text-crop" style="text-align: end;">”</h2>
                     </div>
                     <div class="flavor-select-wrapper">
-                        <span>VERSION: </span>
+                        <span>VERSION </span>
 
                         <select name="" id="" bind:value={currentFlavorVersion}>
                             {#each getFlavorVersions(species) as { version }}
@@ -538,8 +541,9 @@
                                 >
                             </div>
                             <div
-                                class="ability center-content"
+                                class="ability center-content clickable"
                                 class:hidden={ability.is_hidden}
+                                on:click={() => abilityModal.show(ability)}
                             >
                                 {kebabToSpace(ability.name).toUpperCase()}
                             </div>
@@ -612,14 +616,18 @@
                                     <th class="col-md">Accuracy</th>
                                     <th class="col-md">PP</th>
                                     <th class="description">Description</th>
-                                    <th>Learn Method</th>
+                                    <th class="col-md">Learn Method</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {#each currentMoveset as { move, version }}
                                     {#await fetchUrl(move.url) then rawData}
                                         {#each [parseMove(rawData)] as moveData}
-                                            <tr>
+                                            <tr
+                                                class="clickable"
+                                                on:click={() =>
+                                                    moveModal.show(moveData)}
+                                            >
                                                 <td
                                                     >{capitalize(
                                                         kebabToSpace(move.name)
@@ -651,7 +659,7 @@
                                                     >{moveData.effect_entries[0]
                                                         .short_effect}</td
                                                 >
-                                                <td>
+                                                <td class="col-md">
                                                     {capitalize(
                                                         kebabToSpace(
                                                             version
@@ -668,7 +676,7 @@
                         </table>
                     </div>
                     <div class="moveset-select-wrapper">
-                        <span>VERSION: </span>
+                        <span>VERSION </span>
                         <select
                             name=""
                             id=""
@@ -738,6 +746,16 @@
     </div>
 </div>
 
+<Modal bind:this={abilityModal}>
+    <h2 slot="title">ABILITY DETAILS</h2>
+    <AbilityModal />
+</Modal>
+
+<Modal bind:this={moveModal}>
+    <h2 slot="title">MOVE DETAILS</h2>
+    <MoveModal />
+</Modal>
+
 <style lang="scss">
     .details {
         position: absolute;
@@ -802,9 +820,6 @@
         border: 0;
         outline: none;
         color: #d6d6d6;
-    }
-
-    .id {
     }
 
     .title {
@@ -874,7 +889,7 @@
             filter: brightness(0) opacity(0.4)
                 drop-shadow(0px 0px 0px var(--species-color))
                 drop-shadow(0px 0px 0px var(--species-color))
-                drop-shadow(0px 0px 0px var(--species-color)) blur(2px);
+                drop-shadow(0px 0px 0px #000) blur(2px);
             opacity: 0.8;
         }
 
@@ -956,8 +971,9 @@
                     width: 100%;
                     height: 100%;
                     background: var(--type-color);
-                    opacity: 0.2;
+                    opacity: 0.5;
                     pointer-events: none;
+                    z-index: -1;
                 }
 
                 // border: 3px solid var(--type-color);
@@ -1068,7 +1084,7 @@
             background: #292626;
 
             span {
-                margin-right: 5px;
+                margin-right: 10px;
                 font-weight: bold;
             }
         }
@@ -1145,12 +1161,12 @@
         }
 
         .ability {
-            padding: 5px;
-            border: 1px solid #000;
+            padding: 10px;
             text-align: center;
+            background: #130f0f;
 
             &.hidden {
-                border: 1px solid #777777;
+                background: #6d6d6d;
             }
         }
     }
@@ -1183,6 +1199,10 @@
                 background: #292626;
             }
 
+            tr:hover td {
+                background: #130f0f;
+            }
+
             .col-md {
                 display: none;
                 @media (min-width: 600px) {
@@ -1197,9 +1217,11 @@
             justify-content: flex-end;
             background: #292626;
             color: white;
+            flex-wrap: wrap;
+            padding: 10px 0 0 0;
 
             span {
-                margin-right: 5px;
+                margin-right: 10px;
                 font-weight: bold;
             }
         }

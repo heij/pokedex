@@ -1,4 +1,30 @@
+<script>
+    import { pop, push } from "svelte-spa-router";
+    import { fly, scale } from "svelte/transition";
+    import { quadInOut, quartIn } from "svelte/easing";
+    import { flip } from "svelte/animate";
+    export let currentUrl;
+
+    let backArrow = false;
+    currentUrl.subscribe((url) => {
+        if (url.includes("/pokemon/")) {
+            return (backArrow = true);
+        }
+
+        backArrow = false;
+    });
+</script>
+
 <nav>
+    <img
+        src="../assets/1x/back_arrow.png"
+        alt=""
+        class="back-arrow"
+        on:click={pop}
+        class:visible={backArrow}
+    />
+    <!-- {#if backArrow}
+    {/if} -->
     <h2>POKEDEX</h2>
 </nav>
 
@@ -7,5 +33,22 @@
         padding: 10px 20px;
         background: #292626;
         color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    .back-arrow {
+        margin-right: 20px;
+        cursor: pointer;
+        height: 25px;
+        transform: scale(0) rotateZ(180deg);
+        transition: transform 0.3s cubic-bezier(0.5, 0, 0.75, 0),
+            opacity 0.5s cubic-bezier(0.5, 0, 0.75, 0);
+        opacity: 0;
+
+        &.visible {
+            transform: scale(1) rotateZ(0);
+            opacity: 1;
+        }
     }
 </style>

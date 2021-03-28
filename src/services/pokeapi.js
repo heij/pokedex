@@ -47,7 +47,7 @@ function getMove(nameOrId, query) {
     return request(`/move`, nameOrId, query);
 }
 
-function getAbilities(nameOrId, query) {
+function getAbility(nameOrId, query) {
     return request(`/ability`, nameOrId, query);
 }
 
@@ -71,7 +71,7 @@ module.exports = {
     getEvolutionChain,
     getForms,
     getMove,
-    getAbilities,
+    getAbility,
     getMainColor,
     getGames,
     getAllSpecies

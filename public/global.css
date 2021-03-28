@@ -6,13 +6,13 @@
 	--green: hsl(120, 30%, 70%);
 	--black: hsl(0, 0%, 40%);
 	--blue: hsl(199, 30%, 70%);
-	--brown: hsl(38, 30%, 70%);
+	--brown: hsl(25, 30%, 60%);
 	--gray: hsl(0, 0%, 75%);
 	--pink: hsl(306, 30%, 70%);
 	--purple: hsl(274, 30%, 70%);
-	--red: hsl(0, 30%, 70%);
+	--red: hsl(0, 50%, 70%);
 	--white: hsl(0, 0%, 90%);
-	--yellow: hsl(60, 30%, 70%);
+	--yellow: hsl(60, 50%, 70%);
 
 	--green-dark: hsl(120, 50%, 40%);
 	--black-dark: hsl(0, 0%, 20%);
@@ -118,6 +118,10 @@ h1 {
 	display: flex;
 }
 
+.clickable {
+	cursor: pointer;
+}
+
 .center-content {
 	display: flex;
 	justify-content: center;
@@ -146,6 +150,7 @@ h1 {
 } .bg-yellow { 
 	background: var(--yellow); 
 }
+
 .bg-green-dark { 
 	background: var(--green-dark); 
 } .bg-black-dark { 
@@ -167,6 +172,33 @@ h1 {
 	background: var(--white-dark); 
 } .bg-yellow-dark { 
 	background: var(--yellow-dark); 
+}
+
+.bg-grad-green-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--green-dark)); 
+} .bg-grad-black-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--black-dark));
+	color: hsl(0, 0%, 90%);
+} .bg-grad-blue-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--blue-dark)); 
+} .bg-grad-brown-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--brown-dark));
+} .bg-grad-gray-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--gray-dark)); 
+} .bg-grad-pink-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--pink-dark)); 
+} .bg-grad-purple-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--purple-dark));
+} .bg-grad-red-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--red-dark)); 
+} .bg-grad-white-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--white-dark)); 
+} .bg-grad-yellow-dark { 
+	background: linear-gradient(45deg, #000 -150%, var(--yellow-dark)); 
+}
+
+.bg-dark {
+	background: #292626;
 }
 
 .color-green { 
@@ -192,8 +224,15 @@ h1 {
 }
 
 .page {
-	position: relative;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
 	height: 100%;
 	overflow: hidden auto;
 	will-change: transform;
+}
+
+.page.locked {
+	overflow: hidden;
 }

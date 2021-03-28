@@ -1,6 +1,6 @@
 <script>
 	import Router from "svelte-spa-router";
-	import { link } from "svelte-spa-router";
+	import { link, location } from "svelte-spa-router";
 	import { wrap } from "svelte-spa-router/wrap";
 
 	import PokeList from "./routes/PokeList.svelte";
@@ -17,7 +17,7 @@
 </script>
 
 <main>
-	<Navbar />
+	<Navbar currentUrl={location} />
 	<div class="page-wrapper">
 		<Router {routes} />
 	</div>
@@ -36,6 +36,7 @@
 	}
 
 	.page-wrapper {
+		position: relative;
 		flex: 1;
 		overflow: hidden;
 	}
