@@ -51,6 +51,7 @@
         top: 0;
         left: 0;
         z-index: 7;
+        transition: transform 0.3s ease-out;
     }
 
     .modal {

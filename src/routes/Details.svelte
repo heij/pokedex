@@ -25,10 +25,9 @@
     import statLabels from "../data/statLabels.json";
     import { tweened } from "svelte/motion";
     import { expoOut, elasticOut, expoIn, quartOut } from "svelte/easing";
-    import { send, receive } from "../animations/crossfade.js";
     import { onResize } from "../utils/onResize";
 
-    import { fly, slide, fade } from "svelte/transition";
+    import { fly, fade } from "svelte/transition";
 
     import "skeleton-elements/skeleton-elements.css";
     import { SkeletonText } from "skeleton-elements/svelte";
@@ -240,6 +239,9 @@
         "../assets/1x/sp_def_light.png",
         "../assets/1x/spe_light.png",
     ];
+    let data;
+    let abilityModal;
+    let moveModal;
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
     $: currentMoveset = movesets[currentMovesetVersion];
@@ -328,7 +330,6 @@
         });
     }
 
-    let data;
     // https://github.com/ItalyPaleAle/svelte-spa-router/issues/14#issuecomment-544532053
     $: if (params.id) {
         data = loadData();
@@ -338,9 +339,6 @@
         if (!document.querySelector(".evolution-chain")) return;
         drawEvoArrows();
     });
-
-    let abilityModal;
-    let moveModal;
 </script>
 
 <svelte:window bind:innerWidth={windowX} />
@@ -359,11 +357,13 @@
                 class="skeleton-wrapper"
                 transition:fade={{ duration: 500, easing: expoOut }}
             >
-                <div class="panel">
+                <div class="panel bg-grad-white-dark">
                     <div class="id section">
-                        <SkeletonText tag="div" effect="pulse"
-                            >0000</SkeletonText
-                        >
+                        <p class="national-id">
+                            <SkeletonText tag="div" effect="pulse"
+                                >0000</SkeletonText
+                            >
+                        </p>
                         <h2 class="name">
                             <SkeletonText tag="div" effect="pulse"
                                 >POKEMON</SkeletonText
@@ -371,7 +371,7 @@
                         </h2>
                         <h4 class="genus">
                             <SkeletonText tag="div" effect="pulse"
-                                >POKEMON</SkeletonText
+                                >POKEMON SPECIES</SkeletonText
                             >
                         </h4>
                     </div>
@@ -384,20 +384,64 @@
                         />
                     </div>
 
-                    <div class="types section">
-                        <SkeletonBlock
-                            width="100%"
-                            height="50px"
-                            effect="pulse"
-                        />
-                    </div>
+                    <div class="pokemon-details section">
+                        <div class="metrics">
+                            <div class="body">
+                                <div class="metric height">
+                                    <h4>HEIGHT</h4>
+                                    <h4>
+                                        <SkeletonBlock
+                                            width="100%"
+                                            height="50px"
+                                            effect="pulse"
+                                        />
+                                    </h4>
+                                </div>
+                                <div class="metric weight">
+                                    <h4>WEIGHT</h4>
+                                    <h4>
+                                        <SkeletonBlock
+                                            width="100%"
+                                            height="50px"
+                                            effect="pulse"
+                                        />
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="types"
+                            class:single={types.length == 1}
+                            class:double={types.length == 2}
+                        >
+                            <SkeletonBlock
+                                width="100%"
+                                height="50px"
+                                effect="pulse"
+                            />
+                        </div>
+                        <div class="flavor-text-wrapper">
+                            <h2 class="text-crop">“</h2>
+                            <p>
+                                <SkeletonBlock
+                                    width="100%"
+                                    height="100px"
+                                    effect="pulse"
+                                />
+                            </p>
+                            <h2 class="text-crop" style="text-align: end;">
+                                ”
+                            </h2>
+                        </div>
+                        <div class="flavor-select-wrapper">
+                            <span>VERSION </span>
 
-                    <div class="flavor-text section">
-                        <SkeletonBlock
-                            width="100%"
-                            height="100px"
-                            effect="pulse"
-                        />
+                            <SkeletonBlock
+                                width="100%"
+                                height="50px"
+                                effect="pulse"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -428,12 +472,14 @@
                             effect="pulse"
                         />
                     </div>
+                </div>
 
-                    <div class="metrics section">
-                        <h3 class="title">MEASUREMENTS</h3>
+                <div class="panel-lg">
+                    <div class="moves section">
+                        <h3 class="title">MOVES</h3>
                         <SkeletonBlock
                             width="100%"
-                            height="150px"
+                            height="500px"
                             effect="pulse"
                         />
                     </div>
@@ -441,7 +487,7 @@
 
                 <div class="panel-lg">
                     <div class="moves section">
-                        <h3 class="title">MOVES</h3>
+                        <h3 class="title">EVOLUTION CHAIN</h3>
                         <SkeletonBlock
                             width="100%"
                             height="500px"

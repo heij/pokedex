@@ -20,7 +20,7 @@
         src="../assets/1x/back_arrow.png"
         alt=""
         class="back-arrow"
-        on:click={pop}
+        on:click={() => push("/")}
         class:visible={backArrow}
     />
     <!-- {#if backArrow}
