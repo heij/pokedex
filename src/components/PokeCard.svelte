@@ -1,7 +1,7 @@
 <script>
     import { push } from "svelte-spa-router";
     import { capitalize } from "../utils/formatter";
-    import TypeIcon from "./typeIcon.svelte";
+    import TypeIcon from "./TypeIcon.svelte";
     import { send, receive } from "../animations/crossfade.js";
     import { fly, fade } from "svelte/transition";
     import { quartOut, quartIn } from "svelte/easing";
