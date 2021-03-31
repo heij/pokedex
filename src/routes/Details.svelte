@@ -357,7 +357,7 @@
                 class="skeleton-wrapper"
                 transition:fade={{ duration: 500, easing: expoOut }}
             >
-                <div class="panel bg-grad-white-dark">
+                <div class="panel">
                     <div class="id section">
                         <p class="national-id">
                             <SkeletonText tag="div" effect="pulse"
@@ -434,13 +434,11 @@
                             </h2>
                         </div>
                         <div class="flavor-select-wrapper">
-                            <span>VERSION </span>
+                            <span>VERSION</span>
 
-                            <SkeletonBlock
-                                width="100%"
-                                height="50px"
-                                effect="pulse"
-                            />
+                            <SkeletonText tag="div" effect="pulse"
+                                >POKEMON</SkeletonText
+                            >
                         </div>
                     </div>
                 </div>
@@ -1471,7 +1469,6 @@
         flex-wrap: wrap;
         flex-direction: row;
         justify-content: space-around;
-        background: lightcoral;
 
         &.panel {
             width: 50%;

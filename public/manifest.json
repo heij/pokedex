@@ -1,0 +1,13 @@
+{
+    "name": "Pokedex",
+    "short_name": "Dex",
+    "lang": "en-US",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#292626",
+    "icons": [
+        {
+            "src": "favicon.png"
+        }
+    ]
+}

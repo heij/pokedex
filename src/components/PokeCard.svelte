@@ -101,6 +101,8 @@
                 alt=""
                 in:receive|local={{ key: "pokeImg" }}
                 out:send|local={{ key: "pokeImg" }}
+                height="96"
+                width="96"
             />
         </div>
     {:else}
