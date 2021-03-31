@@ -1,5 +1,5 @@
 <script>
-    import Pokecard from "../components/pokeCard.svelte";
+    import Pokecard from "../components/PokeCard.svelte";
     import {
         fetchUrl,
         getAllSpecies,
