@@ -106,7 +106,7 @@
                 }
 
                 let move = { ...m };
-                move.version_group_details = null;
+                delete move.version_group_details;
                 move.version = v;
 
                 res[v.version_group.name].push(move);
@@ -170,7 +170,7 @@
         let evoDetails = chain.evolution_details[0];
         let trigger = evoDetails?.trigger;
         if (evoDetails?.trigger) {
-            evoDetails.trigger = null;
+            evoDetails.trigger = undefined;
         }
 
         if (evoDetails) {

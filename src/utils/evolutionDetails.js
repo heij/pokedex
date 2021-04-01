@@ -59,7 +59,7 @@ function parseEvolutionDetails(trigger, requirements) {
     let result = [];
     if (trigger == 'use-item') {
         result.push(`Use ${formatText(requirements.item.name)}`);
-        requirements.item = null;
+        delete requirements.item;
     }
 
     if (trigger in triggerTextRef) {
