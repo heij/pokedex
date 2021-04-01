@@ -10,7 +10,6 @@
     import { SkeletonBlock } from "skeleton-elements/svelte";
 
     export let data;
-    export let pokemonName;
     export let cardLeft;
     export let cardTop;
 

@@ -106,7 +106,7 @@
                 }
 
                 let move = { ...m };
-                delete move.version_group_details;
+                move.version_group_details = null;
                 move.version = v;
 
                 res[v.version_group.name].push(move);
@@ -169,7 +169,9 @@
 
         let evoDetails = chain.evolution_details[0];
         let trigger = evoDetails?.trigger;
-        delete evoDetails?.trigger;
+        if (evoDetails?.trigger) {
+            evoDetails.trigger = null;
+        }
 
         if (evoDetails) {
             evoDetails = Object.entries(evoDetails).reduce((res, [k, v]) => {
@@ -752,15 +754,15 @@
                                 {/if}
                             </div>
                             <div class="stage-body">
-                                {#each row as pokemon}
+                                {#each row as pokeEvo}
                                     <a
-                                        id="evo-{pokemon.name}"
+                                        id="evo-{pokeEvo.name}"
                                         class="evo-entry"
-                                        href="/#/pokemon/{pokemon.name}"
+                                        href="/#/pokemon/{pokeEvo.name}"
                                     >
                                         <div class="requirements">
-                                            {#if pokemon.evolutionDetails}
-                                                {#each parseEvolutionDetails(pokemon.trigger.name, pokemon.evolutionDetails) as requirement, i}
+                                            {#if pokeEvo.evolutionDetails}
+                                                {#each parseEvolutionDetails(pokeEvo.trigger.name, pokeEvo.evolutionDetails) as requirement, i}
                                                     {#if i == 0}
                                                         <h4>{requirement}</h4>
                                                     {:else}
@@ -769,14 +771,14 @@
                                                 {/each}
                                             {/if}
                                         </div>
-                                        {#await pokemon.pokemonData then data}
+                                        {#await pokeEvo.pokemonData then data}
                                             <img
                                                 src={data.sprites.front_default}
                                                 alt=""
                                                 use:drawEvoArrows
                                             />
                                         {/await}
-                                        <h3>{capitalize(pokemon.name)}</h3>
+                                        <h3>{capitalize(pokeEvo.name)}</h3>
                                     </a>
                                 {/each}
                             </div>
