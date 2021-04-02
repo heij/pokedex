@@ -246,7 +246,7 @@
     let moveModal;
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
-    $: currentMoveset = movesets[currentMovesetVersion];
+    $: currentMoveset = movesets[currentMovesetVersion] || [];
 
     function loadData() {
         return new Promise(async (resolve) => {
