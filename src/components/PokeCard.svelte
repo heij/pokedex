@@ -107,7 +107,7 @@
     {:else}
         <div
             class="skeleton-wrapper"
-            transition:fade={{ duration: 500, easing: quartOut }}
+            transition:fade={{ duration: 150, easing: quartOut }}
         >
             <div class="type-tags" />
             <p class="number text-faded">
@@ -227,11 +227,13 @@
                 position: relative;
                 max-width: 100%;
                 transform: translateY(0) translateZ(0);
-                // transition: transform 0.2s ease-in-out;
 
                 @keyframes popBack {
                     0% {
                         transform: translateY(-2.5px) translateZ(20px);
+                    }
+                    50% {
+                        transform: translateY(0) translateZ(40px);
                     }
                     100% {
                         transform: translateY(0) translateZ(0);
@@ -241,6 +243,9 @@
                 @keyframes popout {
                     0% {
                         transform: translateY(0) translateZ(0);
+                    }
+                    50% {
+                        transform: translateY(0) translateZ(40px);
                     }
                     100% {
                         transform: translateY(0) translateZ(20px);

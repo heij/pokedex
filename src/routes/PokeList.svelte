@@ -2,14 +2,18 @@
     import Pokecard from "../components/PokeCard.svelte";
     import {
         fetchUrl,
+        request,
         getAllSpecies,
-        getPokemon,
+        getAllFrom,
     } from "../services/pokeapi.js";
     import throttle from "just-throttle";
     import debounce from "just-debounce-it";
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
     import { expoIn } from "svelte/easing";
+    import { capitalize } from "../utils/formatter.js";
+    import TypeIcon from "../components/TypeIcon.svelte";
+    import typeColors from "../data/typeColors.json";
 
     let speciesReference = [];
     let filtered = [];
@@ -28,8 +32,9 @@
     let cardsInRow;
     let rows;
     let searchQuery = "";
-    let type1Query;
-    let type2Query;
+    let typeQuery1;
+    let typeQuery2;
+    let typeQueries = [typeQuery1, typeQuery2];
 
     let gridGap = 20;
     let gridPadding = 20;
@@ -131,14 +136,32 @@
         }
     }
 
-    let filterList = debounce(() => {
-        filtered = searchQuery
-            ? setGrid(
-                  speciesReference.filter((s) =>
-                      s.name.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-              )
-            : setGrid(speciesReference);
+    function getPokemonOfType(type) {
+        return request("/type", type).then((res) =>
+            res.pokemon.map((p) => p.pokemon.name)
+        );
+    }
+
+    let filterList = debounce(async () => {
+        let filteredSpecies = speciesReference;
+
+        if (searchQuery) {
+            filteredSpecies = speciesReference.filter((s) =>
+                s.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        for (let type of typeQueries) {
+            if (type) {
+                let typePokemons = await getPokemonOfType(type);
+
+                filteredSpecies = filteredSpecies.filter((s) =>
+                    typePokemons.includes(s.name)
+                );
+            }
+        }
+
+        filtered = setGrid(filteredSpecies);
         updateGrid(true);
     }, 400);
 
@@ -165,9 +188,21 @@
         bind:value={searchQuery}
         on:keyup={filterList}
     />
-    <!-- <select name="" id="">
-        <option value="" disabled hidden selected>Type</option>
-    </select> -->
+
+    {#each typeQueries as typeQuery, i}
+        <select
+            name=""
+            id="type_{i + 1}"
+            bind:value={typeQuery}
+            on:blur={filterList}
+        >
+            <option value="" hidden disabled selected>Type {i + 1}</option>
+            <option value="" selected>Any</option>
+            {#each Object.keys(typeColors) as type}
+                <option value={type}>{capitalize(type)}</option>
+            {/each}
+        </select>
+    {/each}
 </div>
 
 <div
@@ -188,7 +223,6 @@
     >
         {#each visible as pokemon (pokemon.index)}
             <Pokecard
-                pokemonName={speciesReference[pokemon.index].name}
                 data={pokemonData[pokemon.index]}
                 cardLeft={pokemon.left}
                 cardTop={pokemon.top}
@@ -199,9 +233,9 @@
 
 <style lang="scss">
     .virtual-wrapper {
-        height: 100%;
         overflow: auto;
         will-change: transform;
+        flex: 1;
     }
     .grid-list {
         position: relative;
@@ -215,5 +249,9 @@
         .title {
             padding: 5px 0;
         }
+    }
+
+    select {
+        margin-right: 10px;
     }
 </style>

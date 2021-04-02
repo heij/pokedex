@@ -64,6 +64,7 @@ function getGames() {
 }
 
 module.exports = {
+    request,
     fetchUrl,
     getAllFrom,
     getPokemon,
