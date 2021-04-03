@@ -1,5 +1,4 @@
 <script>
-    export let pokemon;
     export let params = {};
 
     import {
@@ -26,7 +25,6 @@
     import { tweened } from "svelte/motion";
     import { expoOut, elasticOut, expoIn, quartOut } from "svelte/easing";
     import { onResize } from "../utils/onResize";
-
     import { fly, fade } from "svelte/transition";
 
     import "skeleton-elements/skeleton-elements.css";
@@ -132,22 +130,6 @@
         }, []);
     }
 
-    function sortMovesetByLearnMethod(moves) {
-        if (!moves) return {};
-
-        return moves.reduce((res, m) => {
-            let method = m.version.move_learn_method.name;
-
-            if (!(method in res)) {
-                res[method] = [];
-            }
-
-            res[method].push(m);
-
-            return res;
-        }, {});
-    }
-
     function getEvolutionChain(
         chain,
         currentLevel = 0,
@@ -198,7 +180,7 @@
         return result;
     }
 
-    pokemon = null;
+    let pokemon = null;
     let species;
     let evolutionData;
 
@@ -276,10 +258,6 @@
             stats.set(getStats(pokemon));
 
             resolve();
-
-            // setTimeout(() => {
-            //     drawEvoArrows();
-            // }, 2000);
         });
     }
 
@@ -292,7 +270,7 @@
         canvas.height = height;
 
         let ctx = canvas.getContext("2d");
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = "#292626";
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
         let rows = [...document.querySelectorAll(".evolution-chain .row")];

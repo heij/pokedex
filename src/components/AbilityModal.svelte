@@ -11,8 +11,8 @@
     $: ability = getData();
 
     function getEffect(ability) {
-        return ability.effect_entries.find((e) => e.language.name == "en")
-            .effect;
+        return ability?.effect_entries?.find((e) => e.language.name == "en")
+            ?.effect;
     }
 </script>
 
@@ -29,7 +29,7 @@
         <h3>{kebabToSpace(ability.name).toUpperCase()}</h3>
     </div>
     <div class="body">
-        <p>{getEffect(ability)}</p>
+        <p>{getEffect(ability) || "Data unavailable"}</p>
     </div>
 {/await}
 

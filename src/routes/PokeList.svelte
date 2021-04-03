@@ -8,12 +8,13 @@
     } from "../services/pokeapi.js";
     import throttle from "just-throttle";
     import debounce from "just-debounce-it";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { fly } from "svelte/transition";
     import { expoIn } from "svelte/easing";
     import { capitalize } from "../utils/formatter.js";
     import TypeIcon from "../components/TypeIcon.svelte";
     import typeColors from "../data/typeColors.json";
+    import { tick } from "svelte";
 
     let speciesReference = [];
     let filtered = [];
@@ -24,6 +25,7 @@
     let visibleEndIndex = 0;
 
     let viewHeight = 0;
+    let gridWrapper;
     let grid;
     let gridHeight;
     let gridWidth;
@@ -50,6 +52,8 @@
     let onScroll = throttle((e) => {
         scrollY = e.target.scrollTop;
         updateGrid();
+
+        localStorage.setItem("pokeListScroll", scrollY);
     }, 200);
 
     onMount(async () => {
@@ -62,6 +66,10 @@
 
         speciesReference = filtered = setGrid(speciesReference);
         updateGrid();
+
+        let oldScroll = localStorage.getItem("pokeListScroll");
+        await tick;
+        gridWrapper.scroll(0, oldScroll);
     });
 
     function setGrid(pokemonList) {
@@ -177,8 +185,6 @@
     }
 </script>
 
-<svelte:window />
-
 <div class="search-wrapper">
     <h4 class="title">Search</h4>
     <input
@@ -209,6 +215,7 @@
     on:scroll={onScroll}
     on:resize={onResize}
     bind:clientHeight={viewHeight}
+    bind:this={gridWrapper}
     class="virtual-wrapper"
 >
     <div
