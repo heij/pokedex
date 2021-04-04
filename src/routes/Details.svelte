@@ -762,6 +762,10 @@
                     <canvas class="arrows" />
                 </div>
             </div>
+
+            <div class="panel-lg">
+                <h3 class="title">EVOLUTION CHAIN</h3>
+            </div>
         {:catch err}
             <p>There was an error loading this pokemon</p>
         {/await}
