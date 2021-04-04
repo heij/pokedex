@@ -1,18 +1,12 @@
 <script>
     import Pokecard from "../components/PokeCard.svelte";
-    import {
-        fetchUrl,
-        request,
-        getAllSpecies,
-        getAllFrom,
-    } from "../services/pokeapi.js";
+    import { fetchUrl, request, getAllSpecies } from "../services/pokeapi.js";
     import throttle from "just-throttle";
     import debounce from "just-debounce-it";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import { fly } from "svelte/transition";
     import { expoIn } from "svelte/easing";
     import { capitalize } from "../utils/formatter.js";
-    import TypeIcon from "../components/TypeIcon.svelte";
     import typeColors from "../data/typeColors.json";
     import { tick } from "svelte";
 
@@ -34,9 +28,7 @@
     let cardsInRow;
     let rows;
     let searchQuery = "";
-    let typeQuery1;
-    let typeQuery2;
-    let typeQueries = [typeQuery1, typeQuery2];
+    let typeQueries = ["", ""];
 
     let gridGap = 20;
     let gridPadding = 20;
@@ -154,8 +146,11 @@
         let filteredSpecies = speciesReference;
 
         if (searchQuery) {
-            filteredSpecies = speciesReference.filter((s) =>
-                s.name.toLowerCase().includes(searchQuery.toLowerCase())
+            let q = searchQuery.trim();
+            filteredSpecies = speciesReference.filter(
+                (s, i) =>
+                    s.name.toLowerCase().includes(q.toLowerCase()) ||
+                    (i + 1).toString().padStart(3, 0).includes(q)
             );
         }
 
@@ -186,29 +181,37 @@
 </script>
 
 <div class="search-wrapper">
-    <h4 class="title">Search</h4>
-    <input
-        type="text"
-        id="search-bar"
-        placeholder="Name"
-        bind:value={searchQuery}
-        on:keyup={filterList}
-    />
-
-    {#each typeQueries as typeQuery, i}
-        <select
-            name=""
-            id="type_{i + 1}"
-            bind:value={typeQuery}
-            on:blur={filterList}
-        >
-            <option value="" hidden disabled selected>Type {i + 1}</option>
-            <option value="" selected>Any</option>
-            {#each Object.keys(typeColors) as type}
-                <option value={type}>{capitalize(type)}</option>
-            {/each}
-        </select>
-    {/each}
+    <div class="filter">
+        <h4 class="title">Search</h4>
+        <input
+            type="text"
+            id="search-bar"
+            placeholder="Name or ID..."
+            bind:value={searchQuery}
+            on:keyup={filterList}
+        />
+    </div>
+    <div>
+        <h4 class="title">Types</h4>
+        {#each typeQueries as typeQuery, i}
+            <select
+                name=""
+                id="type_{i + 1}"
+                bind:value={typeQuery}
+                on:blur={filterList}
+            >
+                <option value="" selected>Any</option>
+                {#each Object.keys(typeColors) as type}
+                    <option
+                        value={type}
+                        style="background: {typeColors[
+                            type
+                        ]}; font-weight: bold;">{capitalize(type)}</option
+                    >
+                {/each}
+            </select>
+        {/each}
+    </div>
 </div>
 
 <div
@@ -253,9 +256,15 @@
         background: #212020;
         padding: 10px 20px 20px 20px;
         color: white;
+        display: flex;
+        flex-wrap: wrap;
         .title {
             padding: 5px 0;
         }
+    }
+
+    .filter {
+        margin-right: 10px;
     }
 
     select {

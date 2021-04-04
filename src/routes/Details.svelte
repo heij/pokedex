@@ -23,7 +23,7 @@
     import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
     import { tweened } from "svelte/motion";
-    import { expoOut, elasticOut, expoIn, quartOut } from "svelte/easing";
+    import { expoOut, expoIn } from "svelte/easing";
     import { onResize } from "../utils/onResize";
     import { fly, fade } from "svelte/transition";
 
@@ -180,6 +180,7 @@
         return result;
     }
 
+    let page;
     let pokemon = null;
     let species;
     let evolutionData;
@@ -330,30 +331,25 @@
         duration: 500,
         easing: expoIn,
     }}
+    bind:this={page}
 >
     <div class="details {species && `bg-${species.color.name}`}">
-        {#await data}
+        {#await new Promise(() => "")}
             <div
                 class="skeleton-wrapper"
                 transition:fade={{ duration: 500, easing: expoOut }}
             >
                 <div class="panel">
                     <div class="id section">
-                        <p class="national-id">
-                            <SkeletonText tag="div" effect="pulse"
-                                >0000</SkeletonText
-                            >
-                        </p>
-                        <h2 class="name">
-                            <SkeletonText tag="div" effect="pulse"
-                                >POKEMON</SkeletonText
-                            >
-                        </h2>
-                        <h4 class="genus">
-                            <SkeletonText tag="div" effect="pulse"
-                                >POKEMON SPECIES</SkeletonText
-                            >
-                        </h4>
+                        <div class="national-id">
+                            <SkeletonBlock tag="p" effect="pulse" />
+                        </div>
+                        <div class="name">
+                            <SkeletonBlock tag="h2" effect="pulse" />
+                        </div>
+                        <div class="genus">
+                            <SkeletonBlock tag="h4" effect="pulse" />
+                        </div>
                     </div>
 
                     <div class="img-wrapper section">
@@ -736,6 +732,7 @@
                                     <a
                                         id="evo-{pokeEvo.name}"
                                         class="evo-entry"
+                                        on:click={() => page.scroll(0, 0)}
                                         href="/#/pokemon/{pokeEvo.name}"
                                     >
                                         <div class="requirements">

@@ -144,7 +144,6 @@
         transform-style: preserve-3d;
         transform: perspective(1000px) rotateX(calc(var(--xRotation) * 10deg))
             rotateY(calc(var(--yRotation) * 10deg));
-
         position: absolute;
 
         &.active {
