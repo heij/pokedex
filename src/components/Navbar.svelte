@@ -23,8 +23,6 @@
         on:click={() => push("/")}
         class:visible={backArrow}
     />
-    <!-- {#if backArrow}
-    {/if} -->
     <h2>POKEDEX</h2>
 </nav>
 

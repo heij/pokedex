@@ -96,6 +96,13 @@ button:focus {
 	border-color: #666;
 }
 
+select {
+	background: #130f0f;
+	border: 0;
+	outline: none;
+	color: #d6d6d6;
+}
+
 h1 {
 	font-size: calc(4rem + .25vw);
 } h2 {
@@ -112,6 +119,8 @@ h1 {
 
 .text-faded {
 	color: #676060;
+} .text-bold {
+	font-weight: bold;
 }
 
 .flex {

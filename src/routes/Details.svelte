@@ -4,32 +4,34 @@
     import {
         capitalize,
         kebabToSpace,
-        formatText,
         clearLinebreaks,
     } from "../utils/formatter.js";
-    import { parseEvolutionDetails } from "../utils/evolutionDetails.js";
-    import { parseMove } from "../utils/moveParser.js";
-    import {
-        getPokemon,
-        getSpecies,
-        getMove,
-        fetchUrl,
-    } from "../services/pokeapi.js";
+    import { getPokemon, getSpecies, fetchUrl } from "../services/pokeapi.js";
     import TypeIcon from "../components/TypeIcon.svelte";
     import AbilityModal from "../components/AbilityModal.svelte";
     import MoveModal from "../components/MoveModal.svelte";
     import Modal from "../components/Modal.svelte";
     import typeColors from "../data/typeColors.json";
-    import versionGroupNames from "../data/versionGroupNames.json";
     import statLabels from "../data/statLabels.json";
     import { tweened } from "svelte/motion";
     import { expoOut, expoIn } from "svelte/easing";
-    import { onResize } from "../utils/onResize";
     import { fly, fade } from "svelte/transition";
+    import MoveTable from "../components/MoveTable.svelte";
+    import EvolutionChain from "../components/EvolutionChain.svelte";
+    import SpriteViewer from "../components/SpriteViewer.svelte";
 
     import "skeleton-elements/skeleton-elements.css";
     import { SkeletonText } from "skeleton-elements/svelte";
     import { SkeletonBlock } from "skeleton-elements/svelte";
+
+    let statIcons = [
+        "../assets/1x/hp_light.png",
+        "../assets/1x/atk_light.png",
+        "../assets/1x/def_light.png",
+        "../assets/1x/sp_atk_light.png",
+        "../assets/1x/sp_def_light.png",
+        "../assets/1x/spe_light.png",
+    ];
 
     function getNationalId(species) {
         let id = species.pokedex_numbers
@@ -96,94 +98,37 @@
         );
     }
 
-    function sortMovesetByVersions(pokemon) {
-        return pokemon.moves.reduce((res, m) => {
-            m.version_group_details.forEach((v) => {
-                if (!(v.version_group.name in res)) {
-                    res[v.version_group.name] = [];
+    function getSprites(pokemon) {
+        let sprites = pokemon.sprites;
+
+        return {
+            default: {
+                back_default: sprites.back_default,
+                back_female: sprites.back_female,
+                back_shiny: sprites.back_shiny,
+                back_shiny_female: sprites.back_shiny_female,
+                front_default: sprites.front_default,
+                front_female: sprites.front_female,
+                front_shiny: sprites.front_shiny,
+                front_shiny_female: sprites.front_shiny_female,
+            },
+            ...Object.entries(pokemon.sprites.versions).reduce((res, gen) => {
+                if (!gen.some(([, value]) => value)) {
+                    return;
                 }
 
-                let move = { ...m };
-                delete move.version_group_details;
-                move.version = v;
-
-                res[v.version_group.name].push(move);
-            });
-
-            return res;
-        }, {});
-    }
-
-    function getMovesetVersions(pokemon) {
-        return pokemon.moves.reduce((res, m) => {
-            let versions = m.version_group_details.map(
-                (v) => v.version_group.name
-            );
-
-            versions.forEach((v) => {
-                if (!res.includes(v)) {
-                    res.push(v);
-                }
-            });
-
-            return res;
-        }, []);
-    }
-
-    function getEvolutionChain(
-        chain,
-        currentLevel = 0,
-        evolvesFrom = null,
-        result = []
-    ) {
-        if (!chain.evolves_to) {
-            return result;
-        }
-
-        let selfReference = {
-            name: chain.species.name,
-            url: chain.species.url,
-        };
-
-        if (!result[currentLevel]) {
-            result[currentLevel] = [];
-        }
-
-        let evoDetails = chain.evolution_details[0];
-        let trigger = evoDetails?.trigger;
-        if (evoDetails?.trigger) {
-            evoDetails.trigger = undefined;
-        }
-
-        if (evoDetails) {
-            evoDetails = Object.entries(evoDetails).reduce((res, [k, v]) => {
-                if (v || v === 0) {
-                    res[k] = v;
-                }
+                gen.forEach(([version, value]) => (res[version] = value));
                 return res;
-            }, {});
-        }
-
-        result[currentLevel].push({
-            ...selfReference,
-            evolvesFrom: evolvesFrom,
-            evolutionDetails: evoDetails,
-            trigger: trigger,
-            pokemonData: getPokemon(selfReference.name),
-            isBaby: chain.is_baby,
-        });
-
-        chain.evolves_to.forEach((c) => {
-            getEvolutionChain(c, currentLevel + 1, selfReference, result);
-        });
-
-        return result;
+            }, {}),
+        };
     }
 
-    let page;
-    let pokemon = null;
+    let pageElem;
+    let windowX;
+
+    let data;
+    let pokemon;
     let species;
-    let evolutionData;
 
     let nationalId = 0;
     let stats = tweened(
@@ -201,35 +146,18 @@
         }
     );
 
-    let windowX;
     let abilities = [];
     let types = [];
-    let evolutionChain = [];
-    let evoBaby = false;
     let genus = "";
     let flavorsTexts = [];
     let currentFlavorVersion = "";
     let currentFlavorText = "";
-    let movesetVersions = [];
-    let currentMovesetVersion = "";
-    let currentMoveset = [];
-    let movesets = {};
+    let mainSprite = "";
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
-    let sprite = "";
-    let statIcons = [
-        "../assets/1x/hp_light.png",
-        "../assets/1x/atk_light.png",
-        "../assets/1x/def_light.png",
-        "../assets/1x/sp_atk_light.png",
-        "../assets/1x/sp_def_light.png",
-        "../assets/1x/spe_light.png",
-    ];
-    let data;
     let abilityModal;
     let moveModal;
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
-    $: currentMoveset = movesets[currentMovesetVersion] || [];
 
     function loadData() {
         return new Promise(async (resolve) => {
@@ -238,23 +166,14 @@
                 getSpecies(params.id),
             ]);
 
-            evolutionData = await fetchUrl(species.evolution_chain.url);
-            evolutionChain = getEvolutionChain(evolutionData.chain);
-
-            if (evolutionChain[0][0].isBaby == true) {
-                evoBaby = true;
-            }
-
             nationalId = getNationalId(species);
             abilities = getAbilities(pokemon);
             types = getTypes(pokemon);
             genus = getGenus(species);
             flavorsTexts = getFlavorVersions(species);
             currentFlavorVersion = flavorsTexts[0].version.name;
-            movesets = sortMovesetByVersions(pokemon);
-            movesetVersions = getMovesetVersions(pokemon);
-            currentMovesetVersion = movesetVersions[0];
-            sprite = pokemon.sprites.other["official-artwork"].front_default;
+            mainSprite =
+                pokemon.sprites.other["official-artwork"].front_default;
             femaleRatio.set(getFemaleRatio(species));
             stats.set(getStats(pokemon));
 
@@ -262,64 +181,10 @@
         });
     }
 
-    function drawEvoArrows() {
-        let container = document.querySelector(".evolution-chain");
-        let canvas = document.querySelector("canvas.arrows");
-        let { width, height } = container.getBoundingClientRect();
-
-        canvas.width = width;
-        canvas.height = height;
-
-        let ctx = canvas.getContext("2d");
-        ctx.strokeStyle = "#292626";
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-        let rows = [...document.querySelectorAll(".evolution-chain .row")];
-
-        evolutionChain.forEach((tier, ti) => {
-            let rowH = rows[ti].offsetTop;
-
-            tier.forEach((pokemon) => {
-                if (!pokemon.evolvesFrom) return;
-                let curr = document.querySelector(`#evo-${pokemon.name}`);
-                let prev = document.querySelector(
-                    `#evo-${pokemon.evolvesFrom.name}`
-                );
-
-                let currBr = curr.getBoundingClientRect();
-                let prevBr = prev.getBoundingClientRect();
-
-                ctx.beginPath();
-                ctx.moveTo(
-                    prev.offsetLeft + prevBr.width / 2,
-                    prev.offsetTop + prevBr.height
-                );
-                ctx.lineTo(
-                    prev.offsetLeft + prevBr.width / 2,
-                    prev.offsetTop + prevBr.height + 20
-                );
-                ctx.lineTo(
-                    curr.offsetLeft + currBr.width / 2,
-                    prev.offsetTop + prevBr.height + 20
-                );
-                ctx.lineTo(
-                    curr.offsetLeft + currBr.width / 2,
-                    curr.offsetTop + rowH
-                );
-                ctx.stroke();
-            });
-        });
-    }
-
     // https://github.com/ItalyPaleAle/svelte-spa-router/issues/14#issuecomment-544532053
     $: if (params.id) {
         data = loadData();
     }
-
-    onResize(() => {
-        if (!document.querySelector(".evolution-chain")) return;
-        drawEvoArrows();
-    });
 </script>
 
 <svelte:window bind:innerWidth={windowX} />
@@ -331,10 +196,10 @@
         duration: 500,
         easing: expoIn,
     }}
-    bind:this={page}
+    bind:this={pageElem}
 >
     <div class="details {species && `bg-${species.color.name}`}">
-        {#await new Promise(() => "")}
+        {#await data}
             <div
                 class="skeleton-wrapper"
                 transition:fade={{ duration: 500, easing: expoOut }}
@@ -488,10 +353,10 @@
                         .join("") + `species-color: ${species.color.name}`}
                 >
                     <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
-                    <img class="sprite" src={sprite} alt="" />
+                    <img class="main-sprite" src={mainSprite} alt="" />
                     <img
                         class="shadow"
-                        src={sprite}
+                        src={mainSprite}
                         alt=""
                         style="--species-color: {species.color.name}"
                     />
@@ -510,6 +375,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div
                         class="types"
                         class:single={types.length == 1}
@@ -529,15 +395,29 @@
                             </div>
                         {/each}
                     </div>
+
                     <div class="flavor-text-wrapper">
                         <h2 class="text-crop">“</h2>
-                        <p>
-                            {clearLinebreaks(currentFlavorText)}
-                        </p>
+                        {#each [currentFlavorText] as flavor (flavor)}
+                            <p
+                                in:fade={{
+                                    duration: 150,
+                                    easing: expoIn,
+                                    delay: 150,
+                                }}
+                                out:fade={{
+                                    duration: 150,
+                                    easing: expoIn,
+                                }}
+                            >
+                                {clearLinebreaks(flavor)}
+                            </p>
+                        {/each}
                         <h2 class="text-crop" style="text-align: end;">”</h2>
                     </div>
+
                     <div class="flavor-select-wrapper">
-                        <span>VERSION </span>
+                        <span>VERSION</span>
 
                         <select name="" id="" bind:value={currentFlavorVersion}>
                             {#each getFlavorVersions(species) as { version }}
@@ -625,146 +505,18 @@
             <div class="panel-lg">
                 <div class="moves section">
                     <h3 class="title">MOVES</h3>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th class="col-md">Category</th>
-                                    <th class="col-md">Power</th>
-                                    <th class="col-md">Accuracy</th>
-                                    <th class="col-md">PP</th>
-                                    <th class="description">Description</th>
-                                    <th class="col-md">Learn Method</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {#each currentMoveset as { move, version }}
-                                    {#await fetchUrl(move.url) then rawData}
-                                        {#each [parseMove(rawData)] as moveData}
-                                            <tr
-                                                class="clickable"
-                                                on:click={() =>
-                                                    moveModal.show(moveData)}
-                                            >
-                                                <td
-                                                    >{capitalize(
-                                                        kebabToSpace(move.name)
-                                                    )}</td
-                                                >
-                                                <td>
-                                                    <TypeIcon
-                                                        type={moveData.type
-                                                            .name}
-                                                    />
-                                                </td>
-                                                <td class="col-md"
-                                                    >{formatText(
-                                                        moveData.damage_class
-                                                            .name
-                                                    )}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.power || 0}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.accuracy ||
-                                                        "-"}</td
-                                                >
-                                                <td class="col-md"
-                                                    >{moveData.pp}</td
-                                                >
-                                                <td class="description"
-                                                    >{moveData.effect_entries[0]
-                                                        .short_effect}</td
-                                                >
-                                                <td class="col-md">
-                                                    {capitalize(
-                                                        kebabToSpace(
-                                                            version
-                                                                .move_learn_method
-                                                                .name
-                                                        )
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        {/each}
-                                    {/await}
-                                {/each}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="moveset-select-wrapper">
-                        <span>VERSION </span>
-                        <select
-                            name=""
-                            id=""
-                            bind:value={currentMovesetVersion}
-                        >
-                            {#each getMovesetVersions(pokemon) as version}
-                                <option value={version}>
-                                    {versionGroupNames[version]}
-                                </option>
-                            {/each}
-                        </select>
-                    </div>
+                    <MoveTable {pokemon} {moveModal} />
                 </div>
             </div>
 
             <div class="panel-lg">
                 <h3 class="title">EVOLUTION CHAIN</h3>
-                <div class="evolution-chain">
-                    {#each evolutionChain as row, i}
-                        <div class="row">
-                            <div class="stage-label">
-                                <p>STAGE</p>
-                                {#if !evoBaby}
-                                    <h3>{i + 1}</h3>
-                                {:else if i == 0}
-                                    <h4>BABY</h4>
-                                {:else}
-                                    <h3>{i}</h3>
-                                {/if}
-                            </div>
-                            <div class="stage-body">
-                                {#each row as pokeEvo}
-                                    <a
-                                        id="evo-{pokeEvo.name}"
-                                        class="evo-entry"
-                                        on:click={() => page.scroll(0, 0)}
-                                        href="/#/pokemon/{pokeEvo.name}"
-                                    >
-                                        <div class="requirements">
-                                            {#if pokeEvo.evolutionDetails}
-                                                {#each parseEvolutionDetails(pokeEvo.trigger.name, pokeEvo.evolutionDetails) as requirement, i}
-                                                    {#if i == 0}
-                                                        <h4>{requirement}</h4>
-                                                    {:else}
-                                                        <p>{requirement}</p>
-                                                    {/if}
-                                                {/each}
-                                            {/if}
-                                        </div>
-                                        {#await pokeEvo.pokemonData then data}
-                                            <img
-                                                src={data.sprites.front_default}
-                                                alt=""
-                                                use:drawEvoArrows
-                                            />
-                                        {/await}
-                                        <h3>{capitalize(pokeEvo.name)}</h3>
-                                    </a>
-                                {/each}
-                            </div>
-                        </div>
-                    {/each}
-                    <canvas class="arrows" />
-                </div>
+                <EvolutionChain {species} {pageElem} />
             </div>
 
             <div class="panel-lg">
-                <h3 class="title">EVOLUTION CHAIN</h3>
+                <h3 class="title">SPRITES</h3>
+                <SpriteViewer {pokemon} femaleRatio={getFemaleRatio(species)} />
             </div>
         {:catch err}
             <p>There was an error loading this pokemon</p>
@@ -841,13 +593,6 @@
         }
     }
 
-    select {
-        background: #130f0f;
-        border: 0;
-        outline: none;
-        color: #d6d6d6;
-    }
-
     .title {
         margin-bottom: 10px;
     }
@@ -892,7 +637,7 @@
         z-index: 1;
         padding: 0 20px;
 
-        .sprite {
+        .main-sprite {
             // max-width: 300px;
             width: 100%;
             z-index: 2;
@@ -1191,6 +936,7 @@
             text-align: center;
             background: #423e3e;
             transition: background 0.2s ease-out;
+            font-weight: bold;
 
             &.hidden {
                 background: none;
@@ -1201,130 +947,6 @@
                 background: #ffffff;
                 color: #000;
             }
-        }
-    }
-
-    .moves {
-        .table-wrapper {
-            height: 500px;
-            overflow: auto;
-        }
-
-        table {
-            position: relative;
-            width: 100%;
-            border-collapse: collapse;
-            border-spacing: 0.5rem;
-            color: #fff;
-
-            th {
-                position: sticky;
-                top: 0;
-                height: 1rem;
-                background: #130f0f;
-                color: #fff;
-                padding: 1rem;
-                text-align: left;
-            }
-
-            td {
-                padding: 1rem;
-                background: #292626;
-            }
-
-            tr:hover td {
-                background: #130f0f;
-            }
-
-            .col-md {
-                display: none;
-                @media (min-width: 600px) {
-                    display: table-cell;
-                }
-            }
-        }
-
-        .moveset-select-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            background: #292626;
-            color: white;
-            flex-wrap: wrap;
-            padding: 10px 0 0 0;
-
-            span {
-                margin-right: 10px;
-                font-weight: bold;
-            }
-        }
-    }
-
-    .evolution-chain {
-        position: relative;
-        width: 100%;
-        // display: flex;
-        // flex-direction: column;
-
-        .row {
-            position: relative;
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            flex-wrap: wrap;
-            z-index: 2;
-
-            &:not(:first-child) {
-                margin-top: 50px;
-            }
-        }
-
-        .stage-label {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            flex-direction: column;
-            padding: 0 0px 0 10px;
-            margin-right: 20px;
-            border-left: 1px solid black;
-            border-bottom: 1px solid black;
-            border-top: 1px solid black;
-        }
-
-        .stage-body {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            grid-column-gap: 1rem;
-            grid-row-gap: 1rem;
-        }
-
-        .evo-entry {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            flex: 1;
-            background: #292626;
-            color: #fff;
-            box-shadow: 0 0 5px #000;
-            padding: 10px;
-            text-decoration: none;
-            transition: background 0.2s ease-out;
-
-            &:hover {
-                background: #151313;
-            }
-        }
-
-        img {
-            margin-top: auto;
-            height: 96px;
-            width: 96px;
-        }
-
-        .requirements {
         }
     }
 
@@ -1430,13 +1052,6 @@
                 display: none;
             }
         }
-    }
-
-    canvas.arrows {
-        position: absolute;
-        left: 0;
-        top: 0;
-        z-index: 1;
     }
 
     .skeleton-wrapper {
