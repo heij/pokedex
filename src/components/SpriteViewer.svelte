@@ -1,5 +1,7 @@
 <script>
     import { formatText } from "../utils/formatter";
+    import { fly, fade } from "svelte/transition";
+    import { quartOut } from "svelte/easing";
     import versionGroupNames from "../data/versionGroupNames.json";
 
     export let pokemon;
@@ -15,6 +17,7 @@
 
     let spriteRef = getSprites(pokemon);
     let selectedVersion;
+    let transitionType = null;
 
     $: selectedVersion, setCheckboxes(spriteRef[selectedVersion]);
     $: currentSprite = spriteRef[selectedVersion]
@@ -101,16 +104,63 @@
         if (!shinyEnabled) shiny = false;
         if (!genderEnabled) gender = false;
     }
+
+    function rotateIn(node, { duration, easing }) {
+        return {
+            duration,
+            easing,
+            css: (t) => {
+                const eased = easing(t);
+
+                return `
+                    opacity: ${eased};
+					transform: translateX(-50%) rotateY(${eased * 180 - 180}deg);`;
+            },
+        };
+    }
+
+    function rotateOut(node, { duration, easing }) {
+        return {
+            duration,
+            easing,
+            css: (t) => {
+                const eased = easing(t);
+
+                return `
+                    opacity: ${eased - 1};
+					transform: translateX(-50%) rotateY(${eased * 180}deg);`;
+            },
+        };
+    }
 </script>
 
 <div class="sprite-wrapper center-content">
-    <img src={currentSprite} alt="" />
+    {#each [currentSprite] as sprite (sprite)}
+        <img
+            src={sprite}
+            alt=""
+            in:rotateIn={{
+                duration: 500,
+                easing: quartOut,
+                delay: 500,
+            }}
+            out:rotateOut={{
+                duration: 500,
+                easing: quartOut,
+            }}
+        />
+    {/each}
 </div>
 
 <div class="checkbox-wrapper">
     <label for="">
         <span>ROTATE</span>
-        <input type="checkbox" bind:checked={side} disabled={!rotateEnabled} />
+        <input
+            type="checkbox"
+            bind:checked={side}
+            disabled={!rotateEnabled}
+            on:change={() => (transition) => "rotate"}
+        />
     </label>
     <label for="">
         <span>SHINY</span>
@@ -138,9 +188,15 @@
 
 <style lang="scss">
     .sprite-wrapper {
+        margin: 30px 0 0 0;
         img {
-            min-width: 200px;
-            min-height: 200px;
+            width: 200px;
+            height: 200px;
+            border: 5px solid;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            filter: drop-shadow(0px 0px 5px #000);
+            transform: rotateY(0);
         }
     }
 

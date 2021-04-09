@@ -13,8 +13,11 @@
     export let moveModal;
 
     let currentMovesetVersion;
-    let movesets = sortMovesetByVersions(pokemon);
+    let movesets;
 
+    $: (movesets = sortMovesetByVersions(pokemon)),
+        (currentMovesetVersion = Object.keys(movesets)[0]);
+    $: currentMovesetVersion;
     $: currentMoveset = movesets[currentMovesetVersion] || [];
 
     function sortMovesetByVersions(pokemon) {

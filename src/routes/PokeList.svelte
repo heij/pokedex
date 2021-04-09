@@ -5,7 +5,7 @@
     import debounce from "just-debounce-it";
     import { onMount } from "svelte";
     import { fly } from "svelte/transition";
-    import { expoIn } from "svelte/easing";
+    import { expoIn, expoOut } from "svelte/easing";
     import { capitalize } from "../utils/formatter.js";
     import typeColors from "../data/typeColors.json";
     import { tick } from "svelte";
@@ -180,8 +180,20 @@
     }
 </script>
 
-<div class="search-wrapper">
-    <div class="filter">
+<div
+    class="search-wrapper"
+    in:fly={{
+        y: -500,
+        duration: 500,
+        easing: expoOut,
+    }}
+    out:fly={{
+        y: -500,
+        duration: 500,
+        easing: expoIn,
+    }}
+>
+    <div class="query-container">
         <h4 class="title">Search</h4>
         <input
             type="text"
@@ -263,7 +275,7 @@
         }
     }
 
-    .filter {
+    .query-container {
         margin-right: 10px;
     }
 

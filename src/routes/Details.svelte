@@ -5,6 +5,7 @@
         capitalize,
         kebabToSpace,
         clearLinebreaks,
+        formatText,
     } from "../utils/formatter.js";
     import { getPokemon, getSpecies, fetchUrl } from "../services/pokeapi.js";
     import TypeIcon from "../components/TypeIcon.svelte";
@@ -14,7 +15,7 @@
     import typeColors from "../data/typeColors.json";
     import statLabels from "../data/statLabels.json";
     import { tweened } from "svelte/motion";
-    import { expoOut, expoIn } from "svelte/easing";
+    import { expoOut, expoIn, quartIn, quartOut } from "svelte/easing";
     import { fly, fade } from "svelte/transition";
     import MoveTable from "../components/MoveTable.svelte";
     import EvolutionChain from "../components/EvolutionChain.svelte";
@@ -123,6 +124,32 @@
         };
     }
 
+    function flyIn(node, { duration, easing }) {
+        return {
+            duration,
+            css: (t) => {
+                const eased = easing(t);
+
+                return `
+					transform: translate(${-150 + 100 * eased}%, -50%);
+                `;
+            },
+        };
+    }
+
+    function flyOut(node, { duration, easing }) {
+        return {
+            duration,
+            css: (t) => {
+                const eased = easing(t);
+
+                return `
+					transform: translate(${-50 + 100 * (1 - eased)}%, -50%);
+                `;
+            },
+        };
+    }
+
     let pageElem;
     let windowX;
 
@@ -152,17 +179,20 @@
     let flavorsTexts = [];
     let currentFlavorVersion = "";
     let currentFlavorText = "";
+    let currentForm = "";
     let mainSprite = "";
     let femaleRatio = tweened(-1, { duration: 750, easing: expoOut });
     let abilityModal;
     let moveModal;
 
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
+    $: currentForm;
+    $: pokemon;
 
-    function loadData() {
+    function loadData(pokemonId = params.id) {
         return new Promise(async (resolve) => {
             [pokemon, species] = await Promise.all([
-                getPokemon(params.id),
+                getPokemon(pokemonId),
                 getSpecies(params.id),
             ]);
 
@@ -353,14 +383,60 @@
                         .join("") + `species-color: ${species.color.name}`}
                 >
                     <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
-                    <img class="main-sprite" src={mainSprite} alt="" />
-                    <img
-                        class="shadow"
-                        src={mainSprite}
-                        alt=""
-                        style="--species-color: {species.color.name}"
-                    />
+
+                    {#each [mainSprite] as sprite (sprite)}
+                        <img
+                            class="main-sprite"
+                            src={sprite}
+                            alt=""
+                            in:flyIn|local={{
+                                duration: 500,
+                                easing: quartOut,
+                                delay: 500,
+                            }}
+                            out:flyOut|local={{
+                                duration: 500,
+                                easing: quartIn,
+                            }}
+                        />
+                        <img
+                            class="shadow"
+                            src={mainSprite}
+                            alt=""
+                            style="--species-color: {species.color.name}"
+                            in:flyIn|local={{
+                                duration: 250,
+                                easing: quartOut,
+                                delay: 500,
+                            }}
+                            out:flyOut|local={{
+                                duration: 250,
+                                easing: quartIn,
+                            }}
+                        />
+                    {/each}
                 </div>
+
+                {#if species.varieties.length > 1}
+                    <div class="form-wrapper">
+                        <label for="form-select text-bold">
+                            <h3>Form</h3>
+                        </label>
+                        <select
+                            id="form-select"
+                            bind:value={currentForm}
+                            on:blur={() => loadData(currentForm)}
+                        >
+                            {#each species.varieties as variety}
+                                <option
+                                    value={variety.pokemon.name}
+                                    selected={variety.is_default}
+                                    >{formatText(variety.pokemon.name)}</option
+                                >
+                            {/each}
+                        </select>
+                    </div>
+                {/if}
 
                 <div class="pokemon-details section">
                     <div class="metrics">
@@ -594,7 +670,10 @@
     }
 
     .title {
-        margin-bottom: 10px;
+        background: #130f0f;
+        color: #fff;
+        padding: 10px;
+        // margin-bottom: 10px;
     }
 
     .line {
@@ -632,16 +711,26 @@
         --type-color-2: transparent;
 
         width: 100%;
-        display: flex;
-        justify-content: center;
+        // display: flex;
+        // justify-content: center;
         z-index: 1;
         padding: 0 20px;
+
+        &::before {
+            content: "";
+            display: block;
+            padding-bottom: 100%;
+        }
 
         .main-sprite {
             // max-width: 300px;
             width: 100%;
             z-index: 2;
             filter: drop-shadow(2px 2px 5px #000);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
 
             @media (min-width: 500px) {
                 // max-width: 300px;
@@ -685,6 +774,12 @@
                         rotateZ(359deg);
                 }
             }
+        }
+    }
+
+    .form-wrapper {
+        label {
+            padding-left: 10px;
         }
     }
 
