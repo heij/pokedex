@@ -99,31 +99,6 @@
         );
     }
 
-    function getSprites(pokemon) {
-        let sprites = pokemon.sprites;
-
-        return {
-            default: {
-                back_default: sprites.back_default,
-                back_female: sprites.back_female,
-                back_shiny: sprites.back_shiny,
-                back_shiny_female: sprites.back_shiny_female,
-                front_default: sprites.front_default,
-                front_female: sprites.front_female,
-                front_shiny: sprites.front_shiny,
-                front_shiny_female: sprites.front_shiny_female,
-            },
-            ...Object.entries(pokemon.sprites.versions).reduce((res, gen) => {
-                if (!gen.some(([, value]) => value)) {
-                    return;
-                }
-
-                gen.forEach(([version, value]) => (res[version] = value));
-                return res;
-            }, {}),
-        };
-    }
-
     function flyIn(node, { duration, easing, delay }) {
         return {
             duration,
@@ -382,7 +357,9 @@
                     <div class="id section">
                         <p class="national-id">{nationalId}</p>
                         <h2 class="name text-wrap-any">
-                            {species.name.toUpperCase()}
+                            {species.varieties.length > 1
+                                ? formatText(pokemon.name).toUpperCase()
+                                : species.name.toUpperCase()}
                         </h2>
                         <h4 class="genus">{genus}</h4>
                     </div>
@@ -684,10 +661,11 @@
             padding: 0;
             -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
+            -webkit-font-smoothing: subpixel-antialiased;
 
             &.rotate {
                 transition: 0.75s transform var(--in-out-expo);
-                transform: rotateY(360deg);
+                transform: rotateY(360deg) translateZ(0);
             }
 
             &:before {

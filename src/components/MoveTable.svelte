@@ -14,11 +14,13 @@
 
     let currentMovesetVersion;
     let movesets;
+    let movesetOptions;
 
     $: (movesets = sortMovesetByVersions(pokemon)),
         (currentMovesetVersion = Object.keys(movesets)[0]);
     $: currentMovesetVersion;
     $: currentMoveset = movesets[currentMovesetVersion] || [];
+    $: movesetOptions = getMovesetVersions(pokemon);
 
     function sortMovesetByVersions(pokemon) {
         return pokemon.moves.reduce((res, m) => {
@@ -70,48 +72,67 @@
             </tr>
         </thead>
         <tbody>
-            {#each currentMoveset as { move, version }}
-                {#await fetchUrl(move.url) then rawData}
-                    {#each [parseMove(rawData)] as moveData}
-                        <tr
-                            class="clickable"
-                            on:click={() => moveModal.show(moveData)}
-                        >
-                            <td>{capitalize(kebabToSpace(move.name))}</td>
-                            <td>
-                                <TypeIcon type={moveData.type.name} />
-                            </td>
-                            <td class="col-md"
-                                >{formatText(moveData.damage_class.name)}</td
+            {#if currentMoveset.length}
+                {#each currentMoveset as { move, version }}
+                    {#await fetchUrl(move.url) then rawData}
+                        {#each [parseMove(rawData)] as moveData}
+                            <tr
+                                class="clickable"
+                                on:click={() => moveModal.show(moveData)}
                             >
-                            <td class="col-md">{moveData.power || 0}</td>
-                            <td class="col-md">{moveData.accuracy || "-"}</td>
-                            <td class="col-md">{moveData.pp}</td>
-                            <td class="description"
-                                >{moveData.effect_entries[0].short_effect}</td
-                            >
-                            <td class="col-md">
-                                {capitalize(
-                                    kebabToSpace(version.move_learn_method.name)
-                                )}
-                            </td>
-                        </tr>
-                    {/each}
-                {/await}
-            {/each}
+                                <td>{capitalize(kebabToSpace(move.name))}</td>
+                                <td>
+                                    <TypeIcon type={moveData.type.name} />
+                                </td>
+                                <td class="col-md"
+                                    >{formatText(
+                                        moveData.damage_class.name
+                                    )}</td
+                                >
+                                <td class="col-md">{moveData.power || 0}</td>
+                                <td class="col-md"
+                                    >{moveData.accuracy || "-"}</td
+                                >
+                                <td class="col-md">{moveData.pp}</td>
+                                <td class="description"
+                                    >{moveData.effect_entries[0]
+                                        .short_effect}</td
+                                >
+                                <td class="col-md">
+                                    {capitalize(
+                                        kebabToSpace(
+                                            version.move_learn_method.name
+                                        )
+                                    )}
+                                </td>
+                            </tr>
+                        {/each}
+                    {/await}
+                {/each}
+            {:else}
+                <tr>
+                    <td colspan="8">
+                        <div class="moves-unavailable center-content text-bold">
+                            No data available for this pokemon
+                        </div>
+                    </td>
+                </tr>
+            {/if}
         </tbody>
     </table>
 </div>
-<div class="moveset-select-wrapper">
-    <span>VERSION</span>
-    <select name="" id="" bind:value={currentMovesetVersion}>
-        {#each getMovesetVersions(pokemon) as version}
-            <option value={version}>
-                {versionGroupNames[version]}
-            </option>
-        {/each}
-    </select>
-</div>
+{#if movesetOptions.length}
+    <div class="moveset-select-wrapper">
+        <span>VERSION</span>
+        <select name="" id="" bind:value={currentMovesetVersion}>
+            {#each movesetOptions as version}
+                <option value={version}>
+                    {versionGroupNames[version]}
+                </option>
+            {/each}
+        </select>
+    </div>
+{/if}
 
 <style lang="scss">
     .table-wrapper {
@@ -125,6 +146,7 @@
         border-collapse: collapse;
         border-spacing: 0.5rem;
         color: #fff;
+        height: 100%;
 
         th {
             position: sticky;
@@ -151,6 +173,12 @@
                 display: table-cell;
             }
         }
+    }
+
+    .moves-unavailable {
+        width: 100%;
+        height: 100%;
+        background: #0f0d0d;
     }
 
     .moveset-select-wrapper {
