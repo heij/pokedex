@@ -206,11 +206,12 @@
     <div>
         <h4 class="title">Types</h4>
         {#each typeQueries as typeQuery, i}
+            <!-- svelte-ignore a11y-no-onchange -->
             <select
                 name=""
                 id="type_{i + 1}"
                 bind:value={typeQuery}
-                on:blur={filterList}
+                on:change={filterList}
             >
                 <option value="" selected>Any</option>
                 {#each Object.keys(typeColors) as type}

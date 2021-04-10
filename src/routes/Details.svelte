@@ -421,10 +421,11 @@
                             <label for="form-select text-bold">
                                 <h3>Form</h3>
                             </label>
+                            <!-- svelte-ignore a11y-no-onchange -->
                             <select
                                 id="form-select"
                                 bind:value={currentForm}
-                                on:blur={() => {
+                                on:change={() => {
                                     rotateCard();
                                     loadData(currentForm);
                                 }}
