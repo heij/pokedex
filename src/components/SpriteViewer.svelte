@@ -18,12 +18,15 @@
     let spriteRef;
     let selectedVersion;
     let transitionType = null;
+    let currentSprite;
 
     $: spriteRef = getSprites(pokemon);
-    $: selectedVersion, setCheckboxes(spriteRef[selectedVersion]);
-    $: currentSprite = spriteRef[selectedVersion]
-        ? spriteRef[selectedVersion][getSpriteKey(side, shiny, gender)]
-        : "";
+    $: selectedVersion,
+        setCheckboxes(spriteRef[selectedVersion]),
+        selectSprite();
+    $: side, selectSprite(), (transitionType = "side");
+    $: shiny, selectSprite(), (transitionType = "shiny");
+    $: gender, selectSprite(), (transitionType = "gender");
 
     function formatSprites(sprites) {
         return {
@@ -86,6 +89,12 @@
         return spriteKey.join("_");
     }
 
+    function selectSprite() {
+        currentSprite = spriteRef?.[selectedVersion]
+            ? spriteRef[selectedVersion][getSpriteKey(side, shiny, gender)]
+            : "";
+    }
+
     function setCheckboxes(sprites) {
         if (!sprites) return;
 
@@ -106,30 +115,60 @@
         if (!genderEnabled) gender = false;
     }
 
-    function rotateIn(node, { duration, easing }) {
+    function imageIn(node, { duration, easing, delay }) {
         return {
             duration,
             easing,
+            delay,
             css: (t) => {
                 const eased = easing(t);
+                let rotate =
+                    transitionType == "side"
+                        ? `rotateY(${eased * 180 - 180}deg)`
+                        : "";
+                let shiny =
+                    transitionType == "shiny"
+                        ? `filter: brightness(${1 - eased}) invert(${
+                              eased * 0.9
+                          });`
+                        : "";
+                let gender =
+                    transitionType == "gender"
+                        ? `rotateY(${eased * 180 - 180}deg)`
+                        : "";
 
                 return `
                     opacity: ${eased};
-					transform: translateX(-50%) rotateY(${eased * 180 - 180}deg);`;
+					transform: translate(-50%, -50%) ${rotate};
+                    ${shiny}`;
             },
         };
     }
 
-    function rotateOut(node, { duration, easing }) {
+    function imageOut(node, { duration, easing, delay }) {
         return {
             duration,
             easing,
+            delay,
             css: (t) => {
                 const eased = easing(t);
+                let rotate =
+                    transitionType == "rotate"
+                        ? `rotateY(${eased * 180}deg)`
+                        : "";
+                let shiny =
+                    transitionType == "shiny"
+                        ? `filter: brightness(1) invert(0);`
+                        : "";
+                let gender =
+                    transitionType == "gender"
+                        ? `rotateY(${eased * 180 - 180}deg)`
+                        : "";
 
                 return `
                     opacity: ${eased - 1};
-					transform: translateX(-50%) rotateY(${eased * 180}deg);`;
+					transform: translate(-50%, -50%) ${rotate};
+                    ${shiny}`;
             },
         };
     }
@@ -140,13 +179,12 @@
         <img
             src={sprite}
             alt=""
-            in:rotateIn={{
-                duration: 500,
+            in:imageIn={{
+                duration: 250,
                 easing: quartOut,
-                delay: 500,
             }}
-            out:rotateOut={{
-                duration: 500,
+            out:imageOut={{
+                duration: 250,
                 easing: quartOut,
             }}
         />
@@ -160,12 +198,17 @@
             type="checkbox"
             bind:checked={side}
             disabled={!rotateEnabled}
-            on:change={() => (transition) => "rotate"}
+            on:change={() => (transitionType = "rotate")}
         />
     </label>
     <label for="">
         <span>SHINY</span>
-        <input type="checkbox" bind:checked={shiny} disabled={!shinyEnabled} />
+        <input
+            type="checkbox"
+            bind:checked={shiny}
+            disabled={!shinyEnabled}
+            on:change={() => (transitionType = "shiny")}
+        />
     </label>
     <label for="">
         <span>GENDER</span>
@@ -173,6 +216,7 @@
             type="checkbox"
             bind:checked={gender}
             disabled={!genderEnabled || femaleRatio < 0}
+            on:change={() => (transitionType = "gender")}
         />
     </label>
 </div>
@@ -189,6 +233,8 @@
 
 <style lang="scss">
     .sprite-wrapper {
+        position: relative;
+        height: 200px;
         margin: 30px 0 0 0;
         img {
             width: 200px;
@@ -197,7 +243,11 @@
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.5);
             filter: drop-shadow(0px 0px 5px #000);
-            transform: rotateY(0);
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotateY(0);
         }
     }
 
