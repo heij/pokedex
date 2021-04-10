@@ -124,9 +124,10 @@
         };
     }
 
-    function flyIn(node, { duration, easing }) {
+    function flyIn(node, { duration, easing, delay }) {
         return {
             duration,
+            delay,
             css: (t) => {
                 const eased = easing(t);
 
@@ -137,9 +138,10 @@
         };
     }
 
-    function flyOut(node, { duration, easing }) {
+    function flyOut(node, { duration, easing, delay }) {
         return {
             duration,
+            delay,
             css: (t) => {
                 const eased = easing(t);
 
@@ -214,6 +216,12 @@
     // https://github.com/ItalyPaleAle/svelte-spa-router/issues/14#issuecomment-544532053
     $: if (params.id) {
         data = loadData();
+    }
+
+    let card;
+    function rotateCard() {
+        card.classList.add("rotate");
+        setTimeout(() => card.classList.remove("rotate"), 1500);
     }
 </script>
 
@@ -366,142 +374,172 @@
                 </div>
             </div>
         {:then}
-            <div class="panel bg-grad-{species.color.name}-dark">
-                <div class="id section">
-                    <p class="national-id">{nationalId}</p>
-                    <h2 class="name">{species.name.toUpperCase()}</h2>
-                    <h4 class="genus">{genus}</h4>
-                </div>
-
-                <div
-                    class="img-wrapper section"
-                    style={types
-                        .map(
-                            (type, i) =>
-                                `--type-color-${i + 1}: ${typeColors[type]};`
-                        )
-                        .join("") + `species-color: ${species.color.name}`}
-                >
-                    <img class="bg" src="../assets/1x/pokeball_md.png" alt="" />
-
-                    {#each [mainSprite] as sprite (sprite)}
-                        <img
-                            class="main-sprite"
-                            src={sprite}
-                            alt=""
-                            in:flyIn|local={{
-                                duration: 500,
-                                easing: quartOut,
-                                delay: 500,
-                            }}
-                            out:flyOut|local={{
-                                duration: 500,
-                                easing: quartIn,
-                            }}
-                        />
-                        <img
-                            class="shadow"
-                            src={mainSprite}
-                            alt=""
-                            style="--species-color: {species.color.name}"
-                            in:flyIn|local={{
-                                duration: 250,
-                                easing: quartOut,
-                                delay: 500,
-                            }}
-                            out:flyOut|local={{
-                                duration: 250,
-                                easing: quartIn,
-                            }}
-                        />
-                    {/each}
-                </div>
-
-                {#if species.varieties.length > 1}
-                    <div class="form-wrapper">
-                        <label for="form-select text-bold">
-                            <h3>Form</h3>
-                        </label>
-                        <select
-                            id="form-select"
-                            bind:value={currentForm}
-                            on:blur={() => loadData(currentForm)}
-                        >
-                            {#each species.varieties as variety}
-                                <option
-                                    value={variety.pokemon.name}
-                                    selected={variety.is_default}
-                                    >{formatText(variety.pokemon.name)}</option
-                                >
-                            {/each}
-                        </select>
-                    </div>
-                {/if}
-
-                <div class="pokemon-details section">
-                    <div class="metrics">
-                        <div class="body">
-                            <div class="metric height">
-                                <h4>HEIGHT</h4>
-                                <h4>{(pokemon.height * 0.1).toFixed(2)}m</h4>
-                            </div>
-                            <div class="metric weight">
-                                <h4>WEIGHT</h4>
-                                <h4>{(pokemon.weight * 0.1).toFixed(2)}kg</h4>
-                            </div>
-                        </div>
+            <div
+                class="panel bg-grad-{species.color.name}-dark"
+                bind:this={card}
+            >
+                <div class="front">
+                    <div class="id section">
+                        <p class="national-id">{nationalId}</p>
+                        <h2 class="name text-wrap-any">
+                            {species.name.toUpperCase()}
+                        </h2>
+                        <h4 class="genus">{genus}</h4>
                     </div>
 
                     <div
-                        class="types"
-                        class:single={types.length == 1}
-                        class:double={types.length == 2}
+                        class="img-wrapper section"
+                        style={types
+                            .map(
+                                (type, i) =>
+                                    `--type-color-${i + 1}: ${
+                                        typeColors[type]
+                                    };`
+                            )
+                            .join("") + `species-color: ${species.color.name}`}
                     >
-                        {#each types as type, i}
-                            <div
-                                class="type-tag {type}"
-                                style="--type-color: {typeColors[type]}"
+                        <img
+                            class="bg"
+                            src="../assets/1x/pokeball_md.png"
+                            alt=""
+                        />
+
+                        {#each [mainSprite] as sprite (sprite)}
+                            <img
+                                class="main-sprite"
+                                src={sprite}
+                                alt=""
+                                in:fade|local={{
+                                    duration: 100,
+                                    easing: quartOut,
+                                    delay: 250,
+                                }}
+                                out:fade|local={{
+                                    duration: 100,
+                                    easing: quartIn,
+                                    delay: 250,
+                                }}
+                            />
+                            <img
+                                class="shadow"
+                                src={mainSprite}
+                                alt=""
+                                style="--species-color: {species.color.name}"
+                                in:fade|local={{
+                                    duration: 100,
+                                    easing: quartOut,
+                                    delay: 250,
+                                }}
+                                out:fade|local={{
+                                    duration: 100,
+                                    easing: quartIn,
+                                    delay: 250,
+                                }}
+                            />
+                        {/each}
+                    </div>
+
+                    {#if species.varieties.length > 1}
+                        <div class="form-wrapper">
+                            <label for="form-select text-bold">
+                                <h3>Form</h3>
+                            </label>
+                            <select
+                                id="form-select"
+                                bind:value={currentForm}
+                                on:blur={() => {
+                                    rotateCard();
+                                    loadData(currentForm);
+                                }}
                             >
-                                <div class="icon">
-                                    <TypeIcon {type} color="#000" />
+                                {#each species.varieties as variety}
+                                    <option
+                                        value={variety.pokemon.name}
+                                        selected={variety.is_default}
+                                        >{formatText(
+                                            variety.pokemon.name
+                                        )}</option
+                                    >
+                                {/each}
+                            </select>
+                        </div>
+                    {/if}
+
+                    <div class="pokemon-details section">
+                        <div class="metrics">
+                            <div class="body">
+                                <div class="metric height">
+                                    <h4>HEIGHT</h4>
+                                    <h4>
+                                        {(pokemon.height * 0.1).toFixed(2)}m
+                                    </h4>
                                 </div>
-                                <p class="type-name text-crop">
-                                    {type.toUpperCase()}
-                                </p>
+                                <div class="metric weight">
+                                    <h4>WEIGHT</h4>
+                                    <h4>
+                                        {(pokemon.weight * 0.1).toFixed(2)}kg
+                                    </h4>
+                                </div>
                             </div>
-                        {/each}
-                    </div>
+                        </div>
 
-                    <div class="flavor-text-wrapper">
-                        <h2 class="text-crop">“</h2>
-                        {#each [currentFlavorText] as flavor (flavor)}
-                            <p
-                                in:fade={{
-                                    duration: 150,
-                                    easing: expoIn,
-                                    delay: 150,
-                                }}
-                                out:fade={{
-                                    duration: 150,
-                                    easing: expoIn,
-                                }}
-                            >
-                                {clearLinebreaks(flavor)}
-                            </p>
-                        {/each}
-                        <h2 class="text-crop" style="text-align: end;">”</h2>
-                    </div>
-
-                    <div class="flavor-select-wrapper">
-                        <span>VERSION</span>
-
-                        <select name="" id="" bind:value={currentFlavorVersion}>
-                            {#each getFlavorVersions(species) as { version }}
-                                <option value={version.name}>
-                                    {capitalize(kebabToSpace(version.name))}
-                                </option>
+                        <div
+                            class="types"
+                            class:single={types.length == 1}
+                            class:double={types.length == 2}
+                        >
+                            {#each types as type, i}
+                                <div
+                                    class="type-tag {type}"
+                                    style="--type-color: {typeColors[type]}"
+                                >
+                                    <div class="icon">
+                                        <TypeIcon {type} color="#000" />
+                                    </div>
+                                    <p class="type-name text-crop">
+                                        {type.toUpperCase()}
+                                    </p>
+                                </div>
                             {/each}
-                        </select>
+                        </div>
+
+                        <div class="flavor-text-wrapper">
+                            <h2 class="text-crop">“</h2>
+                            {#each [currentFlavorText] as flavor (flavor)}
+                                <p
+                                    in:fade={{
+                                        duration: 150,
+                                        easing: expoIn,
+                                        delay: 150,
+                                    }}
+                                    out:fade={{
+                                        duration: 150,
+                                        easing: expoIn,
+                                    }}
+                                >
+                                    {clearLinebreaks(flavor)}
+                                </p>
+                            {/each}
+                            <h2 class="text-crop" style="text-align: end;">
+                                ”
+                            </h2>
+                        </div>
+
+                        <div class="flavor-select-wrapper">
+                            <span>VERSION</span>
+
+                            <select
+                                name=""
+                                id=""
+                                bind:value={currentFlavorVersion}
+                            >
+                                {#each getFlavorVersions(species) as { version }}
+                                    <option value={version.name}>
+                                        {capitalize(kebabToSpace(version.name))}
+                                    </option>
+                                {/each}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -629,10 +667,10 @@
 
     .panel {
         // max-width: unquote("min(100%, 500px)");
+        position: relative;
         width: 100%;
         margin-bottom: 20px;
         padding: 0 20px;
-        overflow-x: hidden;
 
         @media (min-width: 600px) {
             // max-width: 50%;
@@ -642,8 +680,29 @@
         &:nth-child(1) {
             box-shadow: 5px 5px 10px #000;
             border-radius: 10px;
-            color: white;
+            color: #fff;
             padding: 0;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+
+            &.rotate {
+                transition: 0.75s transform var(--in-out-expo);
+                transform: rotateY(360deg);
+            }
+
+            &:before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #292626;
+                transform: rotateY(180deg);
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                border-radius: 10px;
+            }
         }
 
         &:nth-child(2) {
@@ -652,6 +711,12 @@
             padding: 20px;
             border-radius: 10px;
             /* height: fit-content; */
+        }
+
+        .front {
+            transform: rotateY(0deg);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
     }
 
@@ -715,6 +780,8 @@
         // justify-content: center;
         z-index: 1;
         padding: 0 20px;
+        overflow: hidden;
+        transition: 0.5s opacity;
 
         &::before {
             content: "";

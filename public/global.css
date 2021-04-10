@@ -24,6 +24,10 @@
 	--red-dark: hsl(0, 50%, 40%);
 	--white-dark: hsl(0, 0%, 70%);
 	--yellow-dark: hsl(60, 50%, 40%);
+
+	--in-expo: cubic-bezier(0.7, 0, 0.84, 0);
+	--in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+	--out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 * {
@@ -121,6 +125,8 @@ h1 {
 	color: #676060;
 } .text-bold {
 	font-weight: bold;
+} .text-wrap-any {
+	overflow-wrap: anywhere;
 }
 
 .flex {

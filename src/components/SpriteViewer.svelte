@@ -15,10 +15,11 @@
     let shinyEnabled = false;
     let genderEnabled = false;
 
-    let spriteRef = getSprites(pokemon);
+    let spriteRef;
     let selectedVersion;
     let transitionType = null;
 
+    $: spriteRef = getSprites(pokemon);
     $: selectedVersion, setCheckboxes(spriteRef[selectedVersion]);
     $: currentSprite = spriteRef[selectedVersion]
         ? spriteRef[selectedVersion][getSpriteKey(side, shiny, gender)]
