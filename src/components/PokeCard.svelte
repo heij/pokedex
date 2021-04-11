@@ -15,6 +15,7 @@
 
     let active = false;
     let activateTimeout = null;
+    let selected = false;
 
     function startTilt() {
         activateTimeout = setTimeout(() => (active = true), 200);
@@ -44,6 +45,7 @@
             return;
         }
 
+        selected = true;
         push(`/pokemon/${data.pokemon.id}`);
     }
 
@@ -61,11 +63,30 @@
     function getRandom(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
+
+    function flyOut(node, { y, duration, easing, delay, selected }) {
+        if (!selected) {
+            return fly(node, {
+                y,
+                duration,
+                easing,
+                delay,
+            });
+        }
+
+        return fly(node, {
+            x: 200,
+            duration,
+            easing,
+            delay: 0,
+        });
+    }
 </script>
 
 <span
     class="card {data?.species && `bg-${data?.species.color.name}`}"
     class:active
+    class:selected
     on:mouseenter={startTilt}
     on:mousemove={updateTilt}
     on:mouseleave={resetTilt}
@@ -77,11 +98,12 @@
         easing: quartOut,
         delay: getRandom(0, 250),
     }}
-    out:fly={{
+    out:flyOut={{
         y: -50,
         duration: 250,
         easing: quartIn,
         delay: getRandom(0, 250),
+        selected,
     }}
 >
     {#if data != undefined}
@@ -148,6 +170,10 @@
 
         &.active {
             transition: none;
+        }
+
+        &.selected {
+            z-index: 5;
         }
 
         .type-tags {
@@ -243,7 +269,7 @@
                     0% {
                         transform: translateY(0) translateZ(0);
                     }
-                    50% {
+                    25% {
                         transform: translateY(0) translateZ(40px);
                     }
                     100% {

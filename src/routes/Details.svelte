@@ -702,7 +702,7 @@
     .panel-lg {
         width: 100%;
         margin-bottom: 20px;
-        padding: 0 20px;
+        // padding: 0 20px;
     }
 
     .section {
@@ -758,7 +758,6 @@
         // display: flex;
         // justify-content: center;
         z-index: 1;
-        padding: 0 20px;
         overflow: hidden;
         transition: 0.5s opacity;
 
