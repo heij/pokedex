@@ -227,9 +227,10 @@
     </div>
 </div>
 
+<svelte:window on:resize={onResize} />
+
 <div
     on:scroll={onScroll}
-    on:resize={onResize}
     bind:clientHeight={viewHeight}
     bind:this={gridWrapper}
     class="virtual-wrapper"

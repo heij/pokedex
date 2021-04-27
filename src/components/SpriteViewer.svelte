@@ -19,6 +19,7 @@
     let selectedVersion;
     let transitionType = null;
     let currentSprite;
+    let sparkleTransitionRunning = false;
 
     $: spriteRef = getSprites(pokemon);
     $: selectedVersion,
@@ -128,9 +129,7 @@
                         : "";
                 let shiny =
                     transitionType == "shiny"
-                        ? `filter: brightness(${1 - eased}) invert(${
-                              eased * 0.9
-                          });`
+                        ? `filter: brightness(${1 - eased});`
                         : "";
                 let gender =
                     transitionType == "gender"
@@ -140,7 +139,8 @@
                 return `
                     opacity: ${eased};
 					transform: translate(-50%, -50%) ${rotate};
-                    ${shiny}`;
+                    ${shiny}
+                `;
             },
         };
     }
@@ -158,17 +158,37 @@
                         : "";
                 let shiny =
                     transitionType == "shiny"
-                        ? `filter: brightness(1) invert(0);`
+                        ? `filter: brightness(${eased});`
                         : "";
                 let gender =
                     transitionType == "gender"
-                        ? `rotateY(${eased * 180 - 180}deg)`
+                        ? `rotateX(${eased * 180 - 180}deg);`
                         : "";
 
                 return `
                     opacity: ${eased - 1};
 					transform: translate(-50%, -50%) ${rotate};
+                    ${gender}
                     ${shiny}`;
+            },
+        };
+    }
+
+    function sparkle(node, { duration, easing, delay }) {
+        return {
+            duration,
+            easing,
+            delay,
+            css: (t) => {
+                const eased = easing(t);
+
+                let e = eased <= 0.5 ? eased * 2 : 1 - (eased - 0.5) * 2;
+                let shiny = transitionType == "shiny" ? `opacity: ${e}` : "";
+
+                return `
+                    filter: brightness(${1 - eased});
+                    ${shiny}
+                `;
             },
         };
     }
@@ -188,6 +208,32 @@
                 easing: quartOut,
             }}
         />
+        <div class="sparkle-wrapper">
+            <span
+                class="star"
+                transition:sparkle={{
+                    duration: 250,
+                    easing: quartOut,
+                    delay: 100,
+                }}>✦</span
+            >
+            <span
+                class="star"
+                transition:sparkle={{
+                    duration: 250,
+                    easing: quartOut,
+                    delay: 50,
+                }}>✦</span
+            >
+            <span
+                class="star"
+                transition:sparkle={{
+                    duration: 250,
+                    easing: quartOut,
+                    delay: 0,
+                }}>✦</span
+            >
+        </div>
     {/each}
 </div>
 
@@ -222,7 +268,13 @@
 </div>
 
 <div class="select-wrapper center-content">
-    <select name="" id="" bind:value={selectedVersion}>
+    <!-- svelte-ignore a11y-no-onchange -->
+    <select
+        name=""
+        id=""
+        bind:value={selectedVersion}
+        on:change={() => (transitionType = "rotate")}
+    >
         {#each Object.keys(spriteRef) as version}
             <option value={version}
                 >{versionGroupNames[version] || formatText(version)}</option
@@ -260,5 +312,60 @@
             margin: 0 10px;
             font-weight: bold;
         }
+    }
+
+    .sparkle-wrapper {
+        position: absolute;
+        z-index: 2;
+        color: #fff;
+        width: 200px;
+        height: 200px;
+        pointer-events: none;
+        @keyframes sparkle {
+            0% {
+                opacity: 0;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .star {
+            position: absolute;
+            opacity: 0;
+
+            &:nth-child(1) {
+                font-size: 100px;
+                top: 0;
+                left: 0;
+            }
+            &:nth-child(2) {
+                font-size: 75px;
+                top: 15px;
+                right: 0;
+            }
+            &:nth-child(3) {
+                font-size: 40px;
+                bottom: 15px;
+                right: 40px;
+            }
+        }
+
+        // &.sparkle {
+        //     &:nth-child(1) {
+        //         animation: 0.3s sparkle ease-out 0s;
+        //     }
+        //     &:nth-child(2) {
+        //         animation: 0.3s sparkle ease-out 0.2s;
+        //     }
+        //     &:nth-child(3) {
+        //         animation: 0.3s sparkle ease-out 0.4s;
+        //     }
+        // }
     }
 </style>

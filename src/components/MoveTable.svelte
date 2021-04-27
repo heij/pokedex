@@ -81,8 +81,13 @@
                                 on:click={() => moveModal.show(moveData)}
                             >
                                 <td>{capitalize(kebabToSpace(move.name))}</td>
-                                <td>
-                                    <TypeIcon type={moveData.type.name} />
+                                <td class="move-type">
+                                    <TypeIcon
+                                        type={moveData.type.name}
+                                        width="50"
+                                        height="50"
+                                        iconStyle="normal"
+                                    />
                                 </td>
                                 <td class="col-md"
                                     >{formatText(
@@ -172,6 +177,11 @@
             @media (min-width: 600px) {
                 display: table-cell;
             }
+        }
+
+        .move-type {
+            width: 50px;
+            height: 50px;
         }
     }
 

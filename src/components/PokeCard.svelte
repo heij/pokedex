@@ -110,7 +110,7 @@
         <div class="type-tags">
             {#each getTypes(data.pokemon) as type}
                 <span class="type-tag">
-                    <TypeIcon {type} />
+                    <TypeIcon {type} iconStyle="circle" />
                 </span>
             {/each}
         </div>
@@ -178,20 +178,25 @@
 
         .type-tags {
             .type-tag {
-                $tag-size: 25px;
+                $tag-size: 40px;
 
                 width: $tag-size;
                 height: $tag-size;
                 position: absolute;
-                right: calc(#{$tag-size} / -2);
-                top: calc(#{$tag-size} / -2);
+                right: calc(#{$tag-size + 5px});
+                top: calc(#{$tag-size - 10px} / -2);
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.5);
+                background: #212020;
                 box-shadow: 0 8px 20px 0 rgba(135, 31, 113, 0.37);
                 pointer-events: none;
 
                 &:nth-child(2) {
-                    top: calc(#{$tag-size} / 2 + 5px);
+                    right: 0;
+                    // top: calc(#{$tag-size} / 2 + 5px);
+                }
+
+                &:first-child:last-child {
+                    right: 0;
                 }
             }
         }

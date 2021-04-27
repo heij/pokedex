@@ -26,12 +26,12 @@
     import { SkeletonBlock } from "skeleton-elements/svelte";
 
     let statIcons = [
-        "../assets/1x/hp_light.png",
-        "../assets/1x/atk_light.png",
-        "../assets/1x/def_light.png",
-        "../assets/1x/sp_atk_light.png",
-        "../assets/1x/sp_def_light.png",
-        "../assets/1x/spe_light.png",
+        "../assets/stat_icons/light/hp_light.png",
+        "../assets/stat_icons/light/atk_light.png",
+        "../assets/stat_icons/light/def_light.png",
+        "../assets/stat_icons/light/sp_atk_light.png",
+        "../assets/stat_icons/light/sp_def_light.png",
+        "../assets/stat_icons/light/spe_light.png",
     ];
 
     function getNationalId(species) {
@@ -472,7 +472,7 @@
                                     style="--type-color: {typeColors[type]}"
                                 >
                                     <div class="icon">
-                                        <TypeIcon {type} color="#000" />
+                                        <TypeIcon {type} iconStyle="dark" />
                                     </div>
                                     <p class="type-name text-crop">
                                         {type.toUpperCase()}
@@ -690,6 +690,10 @@
             padding: 20px;
             border-radius: 10px;
             /* height: fit-content; */
+
+            .title {
+                margin-bottom: 10px;
+            }
         }
 
         .front {
@@ -829,9 +833,10 @@
     }
 
     .types {
-        $icon-size: 40px;
+        $icon-size: 80px;
 
         display: flex;
+        flex-wrap: wrap;
         min-height: 1rem;
 
         .type-tag {
@@ -849,7 +854,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                padding: 5px;
+                // padding: 5px;
                 z-index: 2;
                 background: var(--type-color);
 
@@ -965,14 +970,6 @@
                 align-self: flex-end;
                 transform: translateY(-0.5rem);
             }
-        }
-
-        .weight {
-            // background-image: url("../assets/1x/weight.png");
-        }
-
-        .height {
-            // background-image: url("../assets/1x/height3.png");
         }
     }
 

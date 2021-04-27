@@ -64,10 +64,10 @@ export default {
 		commonjs(),
 		json(),
 		inlineSvg({
-			removeTags: true,
-			removingTags: ['title', 'desc', 'defs', 'style'],
-			removeSVGTagAttrs: true,
-			removingTagAttrs: ['fill']
+			// removeTags: true,
+			// removingTags: ['title', 'desc', 'defs', 'style'],
+			// removeSVGTagAttrs: true,
+			// removingTagAttrs: ['fill']
 		}),
 
 		// In dev mode, call `npm run start` once
