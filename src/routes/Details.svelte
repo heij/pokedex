@@ -527,7 +527,10 @@
                     <h3 class="title">ABILITIES</h3>
                     <div class="abilities-body">
                         {#each abilities as ability}
-                            <div class="hidden-tag center-content">
+                            <div
+                                class="center-content"
+                                class:hidden-tag={ability.is_hidden}
+                            >
                                 <small
                                     >{ability.is_hidden ? "HIDDEN" : ""}</small
                                 >
@@ -590,6 +593,16 @@
                         <p class="gender-tag text-female">
                             {($femaleRatio * 100).toFixed(2)}% FEMALE
                         </p>
+                    </div>
+                </div>
+
+                <div class="egg section">
+                    <h3 class="title">EGG GROUPS</h3>
+
+                    <div class="egg-groups">
+                        {#each species.egg_groups as eggGroup}
+                            <div class="group">{formatText(eggGroup.name)}</div>
+                        {/each}
                     </div>
                 </div>
             </div>
@@ -795,10 +808,9 @@
             top: calc(50% - 20px);
             transform: translate(-50%, -50%);
             z-index: -1;
-            filter: brightness(0) opacity(0.4)
+            filter: brightness(0) opacity(0.7)
                 drop-shadow(0px 0px 0px var(--species-color))
-                drop-shadow(0px 0px 0px var(--species-color))
-                drop-shadow(0px 0px 0px #000) blur(2px);
+                drop-shadow(0px 0px 0px var(--species-color)) blur(2px);
             opacity: 0.8;
         }
 
@@ -1068,6 +1080,12 @@
             grid-auto-flow: column;
         }
 
+        .hidden-tag {
+            background: #fff;
+            font-weight: bold;
+            color: #130f0f;
+        }
+
         .ability {
             padding: 5px;
             text-align: center;
@@ -1188,6 +1206,19 @@
             .text-female {
                 display: none;
             }
+        }
+    }
+
+    .egg-groups {
+        display: flex;
+        justify-content: space-around;
+        .group {
+            flex: 1;
+            padding: 5px;
+            font-weight: bold;
+            background: #130f0f;
+            text-align: center;
+            margin: 0 5px;
         }
     }
 

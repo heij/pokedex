@@ -23,6 +23,7 @@
         on:click={() => push("/")}
         class:visible={backArrow}
     />
+    <img src="../assets/1x/dex-logo.png" alt="" class="logo" />
     <h2>POKEDEX</h2>
 </nav>
 
@@ -35,8 +36,12 @@
         align-items: center;
     }
 
+    .logo {
+        height: 50px;
+        margin: 0 20px;
+    }
+
     .back-arrow {
-        margin-right: 20px;
         cursor: pointer;
         height: 25px;
         transform: scale(0) rotateZ(180deg);

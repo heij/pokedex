@@ -83,14 +83,14 @@
     }
 </script>
 
-<span
+<a
     class="card {data?.species && `bg-${data?.species.color.name}`}"
     class:active
     class:selected
     on:mouseenter={startTilt}
     on:mousemove={updateTilt}
     on:mouseleave={resetTilt}
-    on:click={showDetails}
+    href={data?.pokemon?.id ? `/#/pokemon/${data.pokemon.id}` : null}
     style="left: {cardLeft}px; top: {cardTop}px;"
     in:fly={{
         y: 50,
@@ -145,7 +145,7 @@
             </div>
         </div>
     {/if}
-</span>
+</a>
 
 <style lang="scss">
     .card {
@@ -167,6 +167,9 @@
         transform: perspective(1000px) rotateX(calc(var(--xRotation) * 10deg))
             rotateY(calc(var(--yRotation) * 10deg));
         position: absolute;
+        cursor: pointer;
+        color: inherit;
+        text-decoration: none;
 
         &.active {
             transition: none;

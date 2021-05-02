@@ -238,33 +238,38 @@
 </div>
 
 <div class="checkbox-wrapper">
-    <label for="">
-        <span>ROTATE</span>
+    <div class="checkbox center-content">
         <input
+            id="sprite-back"
             type="checkbox"
             bind:checked={side}
             disabled={!rotateEnabled}
             on:change={() => (transitionType = "rotate")}
         />
-    </label>
-    <label for="">
-        <span>SHINY</span>
+        <label for="sprite-back">BACK</label>
+    </div>
+
+    <div class="checkbox center-content">
         <input
+            id="sprite-shiny"
             type="checkbox"
             bind:checked={shiny}
             disabled={!shinyEnabled}
             on:change={() => (transitionType = "shiny")}
         />
-    </label>
-    <label for="">
-        <span>GENDER</span>
+        <label for="sprite-shiny">SHINY</label>
+    </div>
+
+    <div class="checkbox center-content">
         <input
+            id="sprite-female"
             type="checkbox"
             bind:checked={gender}
             disabled={!genderEnabled || femaleRatio < 0}
             on:change={() => (transitionType = "gender")}
         />
-    </label>
+        <label for="sprite-female">FEMALE</label>
+    </div>
 </div>
 
 <div class="select-wrapper center-content">
@@ -293,7 +298,6 @@
             height: 200px;
             border: 5px solid;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.5);
             filter: drop-shadow(0px 0px 5px #000);
 
             position: absolute;
@@ -308,9 +312,13 @@
         justify-content: center;
         margin: 10px 0;
 
-        label {
-            margin: 0 10px;
+        .checkbox {
+            margin: 0 0 0 10px;
             font-weight: bold;
+        }
+
+        label {
+            margin: 0 0 0 5px;
         }
     }
 

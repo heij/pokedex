@@ -9,6 +9,7 @@
     import { capitalize } from "../utils/formatter.js";
     import typeColors from "../data/typeColors.json";
     import { tick } from "svelte";
+    import { preloadImg } from "../utils/imgPreloader";
 
     let speciesReference = [];
     let filtered = [];
@@ -34,7 +35,28 @@
     let gridPadding = 20;
     let cardHeight = 200;
     let cardWidth = 150;
-    let rowBuffer = 1;
+    let rowBuffer = 0;
+
+    let listTypeIcons = {
+        normal: preloadImg("../assets/type_icons/circle/1x/normal.png"),
+        fire: preloadImg("../assets/type_icons/circle/1x/fire.png"),
+        water: preloadImg("../assets/type_icons/circle/1x/water.png"),
+        electric: preloadImg("../assets/type_icons/circle/1x/electric.png"),
+        grass: preloadImg("../assets/type_icons/circle/1x/grass.png"),
+        ice: preloadImg("../assets/type_icons/circle/1x/ice.png"),
+        fighting: preloadImg("../assets/type_icons/circle/1x/fighting.png"),
+        poison: preloadImg("../assets/type_icons/circle/1x/poison.png"),
+        ground: preloadImg("../assets/type_icons/circle/1x/ground.png"),
+        flying: preloadImg("../assets/type_icons/circle/1x/flying.png"),
+        psychic: preloadImg("../assets/type_icons/circle/1x/psychic.png"),
+        bug: preloadImg("../assets/type_icons/circle/1x/bug.png"),
+        rock: preloadImg("../assets/type_icons/circle/1x/rock.png"),
+        ghost: preloadImg("../assets/type_icons/circle/1x/ghost.png"),
+        dragon: preloadImg("../assets/type_icons/circle/1x/dragon.png"),
+        dark: preloadImg("../assets/type_icons/circle/1x/dark.png"),
+        steel: preloadImg("../assets/type_icons/circle/1x/steel.png"),
+        fairy: preloadImg("../assets/type_icons/circle/1x/fairy.png"),
+    };
 
     let onResize = throttle((e) => {
         speciesReference = filtered = setGrid(speciesReference);
