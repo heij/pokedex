@@ -189,7 +189,6 @@
                 right: calc(#{$tag-size - 5px});
                 top: calc(#{$tag-size - 10px} / -2);
                 border-radius: 50%;
-                // background: #212020;
                 box-shadow: 0 8px 20px 0 rgba(135, 31, 113, 0.37);
                 pointer-events: none;
 
