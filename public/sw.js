@@ -5,6 +5,7 @@ const version = 3;
 
 const pokeApiDataCache = `pokeapi-data-${version}`;
 const pokeApiImgCache = `pokeapi-imgs-${version}`;
+const dexIcons = `dex-assets`;
 
 self.addEventListener('fetch', (event) => {
     if (event.request.url.match(gamesRe)) {

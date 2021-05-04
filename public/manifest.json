@@ -1,13 +1,25 @@
 {
     "name": "Pokedex",
-    "short_name": "Dex",
+    "short_name": "Pokedex",
     "lang": "en-US",
     "start_url": "/",
     "display": "standalone",
     "theme_color": "#292626",
     "icons": [
         {
-            "src": "favicon.png"
+            "src": "assets/1x/icon_128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/1x/icon_192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/1x/icon_512.png",
+            "sizes": "512x512",
+            "type": "image/png"
         }
     ]
 }

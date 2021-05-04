@@ -23,7 +23,7 @@
         on:click={() => push("/")}
         class:visible={backArrow}
     />
-    <img src="../assets/1x/dex-logo.png" alt="" class="logo" />
+    <img src="../assets/1x/icon_128.png" alt="" class="logo" />
     <h2>POKEDEX</h2>
 </nav>
 
@@ -38,7 +38,7 @@
 
     .logo {
         height: 50px;
-        margin: 0 20px;
+        margin: 0 10px 0 20px;
     }
 
     .back-arrow {

@@ -186,7 +186,7 @@
                 width: $tag-size;
                 height: $tag-size;
                 position: absolute;
-                right: calc(#{$tag-size + 5px});
+                right: calc(#{$tag-size - 5px});
                 top: calc(#{$tag-size - 10px} / -2);
                 border-radius: 50%;
                 background: #212020;
