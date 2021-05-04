@@ -34,7 +34,39 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(Promise.all([
         self.clients.claim(),
-        checkCacheValidity()
+        checkCacheValidity(),
+        caches.open(dexIcons)
+            .then((cache) => {
+                return cache.addAll([
+                    './assets/1x/back_arrow.png',
+                    './assets/1x/pokeball_md.png',
+                    './assets/1x/pokeball.png',
+                    './assets/1x/stat_icons/light/atk_light.png',
+                    './assets/1x/stat_icons/light/def_light.png',
+                    './assets/1x/stat_icons/light/hp_light.png',
+                    './assets/1x/stat_icons/light/sp_atk_light.png',
+                    './assets/1x/stat_icons/light/sp_def_light.png',
+                    './assets/1x/stat_icons/light/spe_light.png',
+                    './assets/1x/type_icons/circle/1x/bug.png',
+                    './assets/1x/type_icons/circle/1x/dark.png',
+                    './assets/1x/type_icons/circle/1x/dragon.png',
+                    './assets/1x/type_icons/circle/1x/electric.png',
+                    './assets/1x/type_icons/circle/1x/fairy.png',
+                    './assets/1x/type_icons/circle/1x/fighting.png',
+                    './assets/1x/type_icons/circle/1x/fire.png',
+                    './assets/1x/type_icons/circle/1x/flying.png',
+                    './assets/1x/type_icons/circle/1x/ghost.png',
+                    './assets/1x/type_icons/circle/1x/grass.png',
+                    './assets/1x/type_icons/circle/1x/ground.png',
+                    './assets/1x/type_icons/circle/1x/ice.png',
+                    './assets/1x/type_icons/circle/1x/normal.png',
+                    './assets/1x/type_icons/circle/1x/poison.png',
+                    './assets/1x/type_icons/circle/1x/psychic.png',
+                    './assets/1x/type_icons/circle/1x/rock.png',
+                    './assets/1x/type_icons/circle/1x/steel.png',
+                    './assets/1x/type_icons/circle/1x/water.png'
+                ]);
+            })
     ]))
 
     console.log('activate');
