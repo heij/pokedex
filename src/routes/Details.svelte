@@ -24,6 +24,7 @@
     import "skeleton-elements/skeleton-elements.css";
     import { SkeletonText } from "skeleton-elements/svelte";
     import { SkeletonBlock } from "skeleton-elements/svelte";
+    import { onMount } from "svelte";
 
     let statIcons = [
         "../assets/stat_icons/light/hp_light.png",
@@ -134,9 +135,14 @@
     let abilityModal;
     let moveModal;
 
+    let card;
+
     $: currentFlavorText = getFlavorText(species, currentFlavorVersion);
     $: currentForm;
-    $: pokemon;
+    // Workaround to bug:
+    // When changing pokemons (params), the card binding inside the await
+    // is lost for some reason (?)
+    $: pokemon, (card = document.querySelector(".panel:nth-child(1)"));
 
     function loadData(pokemonId = params.id) {
         return new Promise(async (resolve) => {
@@ -164,8 +170,6 @@
     $: if (params.id) {
         data = loadData();
     }
-
-    let card;
     function rotateCard() {
         card.classList.add("rotate");
         setTimeout(() => card.classList.remove("rotate"), 750);
