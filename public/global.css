@@ -3,13 +3,13 @@
 :root {
 	font-size: 62.5%;
 
-	--green: hsl(120, 30%, 70%);
+	--green: hsl(120, 50%, 70%);
 	--black: hsl(0, 0%, 40%);
-	--blue: hsl(199, 30%, 70%);
-	--brown: hsl(25, 30%, 60%);
+	--blue: hsl(199, 50%, 70%);
+	--brown: hsl(25, 50%, 60%);
 	--gray: hsl(0, 0%, 75%);
-	--pink: hsl(306, 30%, 70%);
-	--purple: hsl(274, 30%, 70%);
+	--pink: hsl(306, 50%, 70%);
+	--purple: hsl(274, 50%, 70%);
 	--red: hsl(0, 50%, 70%);
 	--white: hsl(0, 0%, 90%);
 	--yellow: hsl(60, 50%, 70%);

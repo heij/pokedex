@@ -4,7 +4,6 @@
     export let width = null;
     export let height = null;
     export let iconStyle = "normal";
-    export let iconUrl;
 
     import typeColors from "../data/typeColors.json";
 

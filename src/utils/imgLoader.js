@@ -1,4 +1,4 @@
-function preloadImg(src) {
+function loadImg(src) {
     return new Promise((resolve) => {
         let img = new Image();
         img.onload = resolve;
@@ -6,4 +6,4 @@ function preloadImg(src) {
     });
 }
 
-module.exports = { preloadImg };
+module.exports = { loadImg };

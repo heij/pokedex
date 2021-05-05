@@ -99,34 +99,6 @@
         );
     }
 
-    function flyIn(node, { duration, easing, delay }) {
-        return {
-            duration,
-            delay,
-            css: (t) => {
-                const eased = easing(t);
-
-                return `
-					transform: translate(${-150 + 100 * eased}%, -50%);
-                `;
-            },
-        };
-    }
-
-    function flyOut(node, { duration, easing, delay }) {
-        return {
-            duration,
-            delay,
-            css: (t) => {
-                const eased = easing(t);
-
-                return `
-					transform: translate(${-50 + 100 * (1 - eased)}%, -50%);
-                `;
-            },
-        };
-    }
-
     let pageElem;
     let windowX;
 
@@ -196,7 +168,7 @@
     let card;
     function rotateCard() {
         card.classList.add("rotate");
-        setTimeout(() => card.classList.remove("rotate"), 1500);
+        setTimeout(() => card.classList.remove("rotate"), 750);
     }
 </script>
 
@@ -230,46 +202,18 @@
                         </div>
                     </div>
 
-                    <div class="img-wrapper section">
+                    <div class="img-wrapper center-content section">
                         <SkeletonBlock
-                            width="100%"
+                            width="80%"
                             height="100%"
                             effect="pulse"
                         />
                     </div>
 
                     <div class="pokemon-details section">
-                        <div class="metrics">
-                            <div class="body">
-                                <div class="metric height">
-                                    <h4>HEIGHT</h4>
-                                    <h4>
-                                        <SkeletonBlock
-                                            width="100%"
-                                            height="50px"
-                                            effect="pulse"
-                                        />
-                                    </h4>
-                                </div>
-                                <div class="metric weight">
-                                    <h4>WEIGHT</h4>
-                                    <h4>
-                                        <SkeletonBlock
-                                            width="100%"
-                                            height="50px"
-                                            effect="pulse"
-                                        />
-                                    </h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="types"
-                            class:single={types.length == 1}
-                            class:double={types.length == 2}
-                        >
+                        <div class="metrics center-content">
                             <SkeletonBlock
-                                width="100%"
+                                width="80%"
                                 height="50px"
                                 effect="pulse"
                             />
@@ -311,13 +255,22 @@
                         <h3 class="title">STATS</h3>
                         <SkeletonBlock
                             width="100%"
-                            height="150px"
+                            height="100px"
                             effect="pulse"
                         />
                     </div>
 
                     <div class="gender section">
                         <h3 class="title">GENDER RATIO</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="100px"
+                            effect="pulse"
+                        />
+                    </div>
+
+                    <div class="egg section">
+                        <h3 class="title">EGG GROUPS</h3>
                         <SkeletonBlock
                             width="100%"
                             height="100px"
@@ -772,8 +725,6 @@
         --type-color-2: transparent;
 
         width: 100%;
-        // display: flex;
-        // justify-content: center;
         z-index: 1;
         overflow: hidden;
         transition: 0.5s opacity;
@@ -1234,14 +1185,19 @@
         flex-direction: row;
         justify-content: space-around;
 
-        &.panel {
+        .panel {
             width: 50%;
+            background: #292626;
         }
 
         .img-wrapper {
             width: 100%;
             height: 300px;
             filter: none;
+
+            &::before {
+                display: none;
+            }
         }
     }
 
