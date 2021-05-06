@@ -24,7 +24,6 @@
     import "skeleton-elements/skeleton-elements.css";
     import { SkeletonText } from "skeleton-elements/svelte";
     import { SkeletonBlock } from "skeleton-elements/svelte";
-    import { onMount } from "svelte";
 
     let statIcons = [
         "../assets/stat_icons/light/hp_light.png",
@@ -142,7 +141,7 @@
     // Workaround to bug:
     // When changing pokemons (params), the card binding inside the await
     // is lost for some reason (?)
-    $: pokemon, (card = document.querySelector(".panel:nth-child(1)"));
+    $: pokemon, (card = document.querySelector("#pokemon-card"));
 
     function loadData(pokemonId = params.id) {
         return new Promise(async (resolve) => {
@@ -170,9 +169,26 @@
     $: if (params.id) {
         data = loadData();
     }
+
+    let rotationStartTime = 0;
+
     function rotateCard() {
+        rotationStartTime = +new Date();
         card.classList.add("rotate");
-        setTimeout(() => card.classList.remove("rotate"), 750);
+
+        setTimeout(() => {
+            card.classList.remove("rotate");
+        }, 1500);
+    }
+
+    function stopCardRotation() {
+        let tDelta = +new Date() - rotationStartTime;
+
+        if (tDelta <= 750) {
+            setTimeout(() => {
+                card.classList.remove("rotate");
+            }, 750 - tDelta);
+        } else card.classList.remove("rotate");
     }
 </script>
 
@@ -308,6 +324,7 @@
         {:then}
             <div
                 class="panel bg-grad-{species.color.name}-dark"
+                id="pokemon-card"
                 bind:this={card}
             >
                 <div class="front">
@@ -339,21 +356,28 @@
                         />
 
                         {#each [mainSprite] as sprite (sprite)}
-                            <img
-                                class="main-sprite"
-                                src={sprite}
-                                alt=""
-                                in:fade|local={{
-                                    duration: 100,
-                                    easing: quartOut,
-                                    delay: 250,
-                                }}
-                                out:fade|local={{
-                                    duration: 100,
-                                    easing: quartIn,
-                                    delay: 250,
-                                }}
-                            />
+                            {#if sprite}
+                                <img
+                                    class="main-sprite"
+                                    src={sprite}
+                                    alt=""
+                                    in:fade|local={{
+                                        duration: 100,
+                                        easing: quartOut,
+                                        delay: 250,
+                                    }}
+                                    out:fade|local={{
+                                        duration: 100,
+                                        easing: quartIn,
+                                        delay: 250,
+                                    }}
+                                    on:load={() => {
+                                        stopCardRotation();
+                                    }}
+                                />
+                            {:else}
+                                <div class="no-img">NO IMAGE AVAILABLE</div>
+                            {/if}
                             <img
                                 class="shadow"
                                 src={mainSprite}
@@ -637,6 +661,11 @@
             &.rotate {
                 transition: 0.75s transform var(--in-out-expo);
                 transform: rotateY(360deg) translateZ(0);
+
+                &::after {
+                    transition: opacity 0.1s ease-out;
+                    opacity: 1;
+                }
             }
 
             &:before {
@@ -651,6 +680,19 @@
                 backface-visibility: hidden;
                 -webkit-backface-visibility: hidden;
                 border-radius: 10px;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #292626;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.2s ease-out;
             }
         }
 
@@ -790,6 +832,13 @@
                         rotateZ(359deg);
                 }
             }
+        }
+
+        .no-img {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
     }
 
@@ -1188,6 +1237,7 @@
         flex-wrap: wrap;
         flex-direction: row;
         justify-content: space-around;
+        z-index: 3;
 
         .panel {
             width: 50%;
