@@ -87,6 +87,7 @@
     class="card {data?.species && `bg-${data?.species.color.name}`}"
     class:active
     class:selected
+    class:skeleton={!data}
     on:mouseenter={startTilt}
     on:mousemove={updateTilt}
     on:mouseleave={resetTilt}
@@ -106,7 +107,25 @@
         selected,
     }}
 >
-    {#if data != undefined}
+    {#if !data}
+        <div
+            class="skeleton-wrapper"
+            transition:fade={{ duration: 150, easing: quartOut }}
+        >
+            <div class="type-tags" />
+            <p class="number text-faded">
+                <SkeletonText effect="pulse">00000</SkeletonText>
+            </p>
+            <h3 class="name center-content">
+                <SkeletonBlock effect="pulse" width="85%">
+                    <SkeletonText tag="h3" effect="pulse">00000</SkeletonText>
+                </SkeletonBlock>
+            </h3>
+            <div class="body">
+                <SkeletonBlock width="75%" height="75%" effect="pulse" />
+            </div>
+        </div>
+    {:else}
         <div class="type-tags">
             {#each getTypes(data.pokemon) as type}
                 <span class="type-tag">
@@ -125,24 +144,6 @@
                 height="96"
                 width="96"
             />
-        </div>
-    {:else}
-        <div
-            class="skeleton-wrapper"
-            transition:fade={{ duration: 150, easing: quartOut }}
-        >
-            <div class="type-tags" />
-            <p class="number text-faded">
-                <SkeletonText effect="pulse">00000</SkeletonText>
-            </p>
-            <h3 class="name center-content">
-                <SkeletonBlock effect="pulse" width="85%">
-                    <SkeletonText tag="h3" effect="pulse">00000</SkeletonText>
-                </SkeletonBlock>
-            </h3>
-            <div class="body">
-                <SkeletonBlock width="75%" height="75%" effect="pulse" />
-            </div>
         </div>
     {/if}
 </a>
@@ -170,6 +171,10 @@
         cursor: pointer;
         color: inherit;
         text-decoration: none;
+
+        &.skeleton {
+            background: #6b6b6b;
+        }
 
         &.active {
             transition: none;
@@ -212,7 +217,6 @@
         .name {
             text-align: center;
             pointer-events: none;
-
             white-space: nowrap;
             overflow: hidden;
         }
@@ -320,6 +324,11 @@
 
             .number {
                 margin-bottom: 10px;
+                margin: 10px;
+            }
+
+            .name {
+                margin: 5px;
             }
         }
     }

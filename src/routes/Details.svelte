@@ -212,7 +212,10 @@
                 <div class="panel">
                     <div class="id section">
                         <div class="national-id">
-                            <SkeletonBlock tag="p" effect="pulse" />
+                            <SkeletonText tag="h2" effect="pulse"
+                                >00000</SkeletonText
+                            >
+                            <!-- <SkeletonBlock tag="p" effect="pulse" /> -->
                         </div>
                         <div class="name">
                             <SkeletonBlock tag="h2" effect="pulse" />
@@ -313,6 +316,17 @@
                 <div class="panel-lg">
                     <div class="moves section">
                         <h3 class="title">EVOLUTION CHAIN</h3>
+                        <SkeletonBlock
+                            width="100%"
+                            height="500px"
+                            effect="pulse"
+                        />
+                    </div>
+                </div>
+
+                <div class="panel-lg">
+                    <div class="section">
+                        <h3 class="title">SPRITES</h3>
                         <SkeletonBlock
                             width="100%"
                             height="500px"
@@ -1252,6 +1266,19 @@
             &::before {
                 display: none;
             }
+        }
+
+        .national-id {
+            padding: 0;
+        }
+
+        .name {
+            padding: 0;
+            margin: 0 10px 0 10px;
+        }
+
+        .genus {
+            padding: 10px 10px 10px 10px;
         }
     }
 

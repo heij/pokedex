@@ -263,7 +263,7 @@
     }
     .grid-list {
         position: relative;
-        background: #868686;
+        background: var(--main-bg);
     }
 
     .search-wrapper {

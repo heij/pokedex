@@ -1,8 +1,5 @@
 <script>
-    import { pop, push } from "svelte-spa-router";
-    import { fly, scale } from "svelte/transition";
-    import { quadInOut, quartIn } from "svelte/easing";
-    import { flip } from "svelte/animate";
+    import { push } from "svelte-spa-router";
     export let currentUrl;
 
     let backArrow = false;
@@ -25,6 +22,10 @@
     />
     <img src="../assets/1x/icon_128.png" alt="" class="logo" />
     <h2>POKEDEX</h2>
+    <a href="https://heij.github.io" class="about" target="_blank">
+        <h4 class="text">by</h4>
+        <h3 class="link text">HEIJI</h3>
+    </a>
 </nav>
 
 <style lang="scss">
@@ -52,6 +53,25 @@
         &.visible {
             transform: scale(1) rotateZ(0);
             opacity: 1;
+        }
+    }
+
+    .about {
+        margin-left: auto;
+        color: white;
+
+        .text {
+            display: inline;
+        }
+
+        .link {
+            display: inline-block;
+            background: var(--secondary-color);
+            transition: 0.2s background ease-out;
+            padding: 10px;
+            &:hover {
+                background: #633030;
+            }
         }
     }
 </style>

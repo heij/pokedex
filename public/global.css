@@ -3,6 +3,9 @@
 :root {
 	font-size: 62.5%;
 
+	--main-bg: #2f2f2f;
+	--secondary-color: #cc5656;
+
 	--green: hsl(120, 50%, 70%);
 	--black: hsl(0, 0%, 40%);
 	--blue: hsl(199, 50%, 70%);
@@ -56,7 +59,7 @@ a {
 }
 
 a:hover {
-	text-decoration: underline;
+	text-decoration: none;
 }
 
 a:visited {

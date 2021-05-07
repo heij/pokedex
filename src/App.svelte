@@ -1,6 +1,6 @@
 <script>
 	import Router from "svelte-spa-router";
-	import { link, location } from "svelte-spa-router";
+	import { location } from "svelte-spa-router";
 	import { wrap } from "svelte-spa-router/wrap";
 
 	import PokeList from "./routes/PokeList.svelte";
@@ -28,7 +28,7 @@
 		position: relative;
 		width: 100vw;
 		height: 100vh;
-		background: #868686;
+		background: var(--main-bg);
 		overflow: hidden;
 
 		display: flex;
