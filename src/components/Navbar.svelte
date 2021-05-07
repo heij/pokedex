@@ -21,7 +21,7 @@
         class:visible={backArrow}
     />
     <img src="../assets/1x/icon_128.png" alt="" class="logo" />
-    <h2>POKEDEX</h2>
+    <h2 class="title">POKEDEX</h2>
     <a href="https://heij.github.io" class="about" target="_blank">
         <h4 class="text">by</h4>
         <h3 class="link text">HEIJI</h3>
@@ -30,7 +30,7 @@
 
 <style lang="scss">
     nav {
-        padding: 10px 20px;
+        padding: 10px 10px;
         background: #292626;
         color: white;
         display: flex;
@@ -40,6 +40,10 @@
     .logo {
         height: 50px;
         margin: 0 10px 0 20px;
+    }
+
+    .title {
+        margin-right: 10px;
     }
 
     .back-arrow {
