@@ -1254,7 +1254,6 @@
         z-index: 3;
 
         .panel {
-            width: 50%;
             background: #292626;
         }
 
