@@ -205,25 +205,27 @@
     </div>
     <div>
         <h3 class="title">Types</h3>
-        {#each typeQueries as typeQuery, i}
-            <!-- svelte-ignore a11y-no-onchange -->
-            <select
-                name=""
-                id="type_{i + 1}"
-                bind:value={typeQuery}
-                on:change={filterList}
-            >
-                <option value="" selected>Any</option>
-                {#each Object.keys(typeColors) as type}
-                    <option
-                        value={type}
-                        style="background: {typeColors[
-                            type
-                        ]}; font-weight: bold;">{capitalize(type)}</option
-                    >
-                {/each}
-            </select>
-        {/each}
+        <div class="type-wrapper">
+            {#each typeQueries as typeQuery, i}
+                <!-- svelte-ignore a11y-no-onchange -->
+                <select
+                    name=""
+                    id="type_{i + 1}"
+                    bind:value={typeQuery}
+                    on:change={filterList}
+                >
+                    <option value="" selected>Any</option>
+                    {#each Object.keys(typeColors) as type}
+                        <option
+                            value={type}
+                            style="background: {typeColors[
+                                type
+                            ]}; font-weight: bold;">{capitalize(type)}</option
+                        >
+                    {/each}
+                </select>
+            {/each}
+        </div>
     </div>
 </div>
 
@@ -271,7 +273,6 @@
         padding: 10px 20px 20px 20px;
         color: white;
         display: flex;
-        flex-wrap: wrap;
         .title {
             padding: 5px 0;
         }
@@ -283,5 +284,20 @@
 
     select {
         margin-right: 10px;
+    }
+
+    .type-wrapper {
+        display: flex;
+    }
+
+    
+    #search-bar {
+        width: 100px;
+    }
+
+    @media (min-width: 600px) {
+        #search-bar {
+            width: auto;
+        }
     }
 </style>
