@@ -194,7 +194,7 @@
     }}
 >
     <div class="query-container">
-        <h4 class="title">Search</h4>
+        <h3 class="title">Search</h3>
         <input
             type="text"
             id="search-bar"
@@ -204,7 +204,7 @@
         />
     </div>
     <div>
-        <h4 class="title">Types</h4>
+        <h3 class="title">Types</h3>
         {#each typeQueries as typeQuery, i}
             <!-- svelte-ignore a11y-no-onchange -->
             <select
