@@ -5,6 +5,7 @@
 
 	import PokeList from "./routes/PokeList.svelte";
 	import Details from "./routes/Details.svelte";
+	import About from "./routes/About.svelte";
 	import Navbar from "./components/Navbar.svelte";
 
 	const routes = {
@@ -13,6 +14,7 @@
 			component: Details,
 			props: {},
 		}),
+		"/about": About,
 	};
 </script>
 
@@ -28,7 +30,7 @@
 		position: relative;
 		width: 100vw;
 		height: 100vh;
-		background: var(--main-bg);
+		background: var(--main-color);
 		overflow: hidden;
 
 		display: flex;

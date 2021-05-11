@@ -169,7 +169,6 @@
             rotateY(calc(var(--yRotation) * 10deg));
         position: absolute;
         cursor: pointer;
-        color: inherit;
         text-decoration: none;
 
         &.skeleton {

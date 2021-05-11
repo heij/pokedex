@@ -4,7 +4,7 @@
 
     let backArrow = false;
     currentUrl.subscribe((url) => {
-        if (url.includes("/pokemon/")) {
+        if (url != "/") {
             return (backArrow = true);
         }
 
@@ -22,9 +22,9 @@
     />
     <img src="../assets/1x/icon_128.png" alt="" class="logo" />
     <h2 class="title">POKEDEX</h2>
-    <a href="https://heij.github.io" class="about" target="_blank">
-        <h4 class="text">by</h4>
-        <h3 class="link text">HEIJI</h3>
+
+    <a href="/#/about" class="about">
+        <h3 class="link text">About</h3>
     </a>
 </nav>
 

@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap');
 
 :root {
 	font-size: 62.5%;
 
-	--main-bg: #2f2f2f;
+	--main-color: #2f2f2f;
 	--secondary-color: #cc5656;
 
 	--green: hsl(120, 50%, 70%);
@@ -37,7 +37,8 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	/* font-family: 'Roboto', sans-serif; */
+	font-family: 'Oswald', sans-serif;
+	letter-spacing: .1rem;
 }
 
 html, body {
@@ -60,10 +61,6 @@ a {
 
 a:hover {
 	text-decoration: none;
-}
-
-a:visited {
-	color: rgb(0,80,160);
 }
 
 label {
@@ -150,7 +147,7 @@ h1 {
 	background: var(--green); 
 } .bg-black { 
 	background: var(--black);
-	color: hsl(0, 0%, 90%);
+	color: hsl(0, 0%, 85%);
 } .bg-blue { 
 	background: var(--blue); 
 } .bg-brown { 
@@ -170,10 +167,10 @@ h1 {
 }
 
 .bg-green-dark { 
-	background: var(--green-dark); 
+	background: var(--green-dark);
 } .bg-black-dark { 
 	background: var(--black-dark);
-	color: hsl(0, 0%, 90%);
+	color: hsl(0, 0%, 85%);
 } .bg-blue-dark { 
 	background: var(--blue-dark); 
 } .bg-brown-dark { 
@@ -249,8 +246,4 @@ h1 {
 	height: 100%;
 	overflow: hidden auto;
 	will-change: transform;
-}
-
-.page.locked {
-	overflow: hidden;
 }
