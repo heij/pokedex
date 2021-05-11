@@ -64,12 +64,9 @@
         padding: 20px;
     }
 
-    p {
-        padding: 10px 0;
-    }
-
     a {
-        padding: 5px;
+        display: inline-block;
+        padding: 0 5px;
         background: var(--secondary-color);
         transition: 0.2s background, 0.2s color;
         border: 1px solid transparent;
@@ -77,7 +74,7 @@
         &:hover {
             border: 1px solid var(--secondary-color);
             color: var(--secondary-color);
-            background: white;
+            background: #ffe7e7;
         }
     }
 </style>
