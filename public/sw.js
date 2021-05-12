@@ -66,7 +66,8 @@ self.addEventListener('activate', (event) => {
                     '/assets/type_icons/circle/1x/steel.png',
                     '/assets/type_icons/circle/1x/water.png',
                     '/index.html',
-                    '/global.css'
+                    'build/bundle.css',
+                    'build/bundle.js',
                 ]);
             })
     ]))
