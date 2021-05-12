@@ -1,6 +1,11 @@
 <script>
     import Pokecard from "../components/PokeCard.svelte";
-    import { fetchUrl, request, getAllSpecies } from "../services/pokeapi.js";
+    import {
+        fetchUrl,
+        request,
+        getAllSpecies,
+        getPokemon,
+    } from "../services/pokeapi.js";
     import throttle from "just-throttle";
     import debounce from "just-debounce-it";
     import { onMount } from "svelte";
@@ -123,10 +128,8 @@
                     return;
                 }
 
-                let species = await fetchUrl(v.url);
-                let pokemonUrl = species.varieties.find((v) => v.is_default)
-                    .pokemon.url;
-                let pokemon = await fetchUrl(pokemonUrl);
+                let species = fetchUrl(v.url);
+                let pokemon = getPokemon(v.index + 1);
 
                 pokemonData[v.index] = {
                     species,
@@ -167,17 +170,6 @@
         filtered = setGrid(filteredSpecies);
         updateGrid(true);
     }, 400);
-
-    function chunk(array, size) {
-        // This prevents infinite loops
-        if (size < 1) throw new Error("Size must be positive");
-
-        const result = [];
-        for (let i = 0; i < array.length; i += size) {
-            result.push(array.slice(i, i + size));
-        }
-        return result;
-    }
 </script>
 
 <div
@@ -290,7 +282,6 @@
         display: flex;
     }
 
-    
     #search-bar {
         width: 100px;
     }

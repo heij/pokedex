@@ -5,22 +5,24 @@ const version = 3;
 
 const pokeApiDataCache = `pokeapi-data-${version}`;
 const pokeApiImgCache = `pokeapi-imgs-${version}`;
-const dexIcons = `dex-assets`;
+const dexAssets = `dex-assets`;
 
 self.addEventListener('fetch', (event) => {
+    if (event.request.url.indexOf('http') !== 0) {
+        return false;
+    }
+    
     if (event.request.url.match(gamesRe)) {
         return false;
     }
 
     let dataReq = event.request.url.match(dataRe);
     let imgReq = event.request.url.match(imgRe);
-    if (!dataReq && !imgReq) {
-        return false;
-    }
 
     let cacheName;
     if (dataReq) { cacheName = pokeApiDataCache }
-    if (imgReq) { cacheName = pokeApiImgCache }
+    else if (imgReq) { cacheName = pokeApiImgCache }
+    else { cacheName = dexAssets }
 
     respondAndCache(event, cacheName);
 })
@@ -35,7 +37,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(Promise.all([
         self.clients.claim(),
         checkCacheValidity(),
-        caches.open(dexIcons)
+        caches.open(dexAssets)
             .then((cache) => {
                 return cache.addAll([
                     '/assets/1x/back_arrow.png',

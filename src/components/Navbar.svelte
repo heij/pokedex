@@ -14,13 +14,13 @@
 
 <nav>
     <img
-        src="../assets/1x/back_arrow.png"
+        src="/assets/1x/back_arrow.png"
         alt=""
         class="back-arrow"
         on:click={() => push("/")}
         class:visible={backArrow}
     />
-    <img src="../assets/1x/icon_128.png" alt="" class="logo" />
+    <img src="/assets/1x/icon_128.png" alt="" class="logo" />
     <h2 class="title">POKEDEX</h2>
 
     <a href="/#/about" class="about">

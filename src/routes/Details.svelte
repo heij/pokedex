@@ -7,7 +7,7 @@
         clearLinebreaks,
         formatText,
     } from "../utils/formatter.js";
-    import { getPokemon, getSpecies, fetchUrl } from "../services/pokeapi.js";
+    import { getPokemon, getSpecies } from "../services/pokeapi.js";
     import TypeIcon from "../components/TypeIcon.svelte";
     import AbilityModal from "../components/AbilityModal.svelte";
     import MoveModal from "../components/MoveModal.svelte";
@@ -26,12 +26,12 @@
     import { SkeletonBlock } from "skeleton-elements/svelte";
 
     let statIcons = [
-        "../assets/stat_icons/light/hp_light.png",
-        "../assets/stat_icons/light/atk_light.png",
-        "../assets/stat_icons/light/def_light.png",
-        "../assets/stat_icons/light/sp_atk_light.png",
-        "../assets/stat_icons/light/sp_def_light.png",
-        "../assets/stat_icons/light/spe_light.png",
+        "/assets/stat_icons/light/hp_light.png",
+        "/assets/stat_icons/light/atk_light.png",
+        "/assets/stat_icons/light/def_light.png",
+        "/assets/stat_icons/light/sp_atk_light.png",
+        "/assets/stat_icons/light/sp_def_light.png",
+        "/assets/stat_icons/light/spe_light.png",
     ];
 
     function getNationalId(species) {
@@ -349,7 +349,7 @@
                                 ? formatText(pokemon.name).toUpperCase()
                                 : species.name.toUpperCase()}
                         </h2>
-                        <h4 class="genus">{genus}</h4>
+                        <h3 class="genus">{genus}</h3>
                     </div>
 
                     <div
@@ -365,7 +365,7 @@
                     >
                         <img
                             class="bg"
-                            src="../assets/1x/pokeball_md.png"
+                            src="/assets/1x/pokeball_md.png"
                             alt=""
                         />
 
@@ -659,7 +659,6 @@
         padding: 0 20px;
 
         @media (min-width: 600px) {
-            // max-width: 50%;
             max-width: 500px;
         }
 

@@ -9,10 +9,10 @@
 
     let iconDir =
         iconStyle == "circle"
-            ? `../assets/type_icons/circle/1x/`
+            ? `/assets/type_icons/circle/1x/`
             : iconStyle == "dark"
-            ? `../assets/type_icons/dark/1x/`
-            : `../assets/type_icons/normal/1x/`;
+            ? `/assets/type_icons/dark/1x/`
+            : `/assets/type_icons/normal/1x/`;
 </script>
 
 <span

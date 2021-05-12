@@ -1,5 +1,4 @@
 <script>
-    import { push } from "svelte-spa-router";
     import { capitalize } from "../utils/formatter";
     import TypeIcon from "./TypeIcon.svelte";
     import { send, receive } from "../animations/crossfade.js";
@@ -13,6 +12,7 @@
     export let cardLeft;
     export let cardTop;
 
+    let dataPromise = Promise.all([data.pokemon, data.species]);
     let active = false;
     let activateTimeout = null;
     let selected = false;
@@ -38,15 +38,6 @@
         this.style.setProperty("--yRotation", 0);
         active = false;
         clearTimeout(activateTimeout);
-    }
-
-    function showDetails() {
-        if (data == undefined) {
-            return;
-        }
-
-        selected = true;
-        push(`/pokemon/${data.pokemon.id}`);
     }
 
     function getTypes(pokemon) {
@@ -83,16 +74,9 @@
     }
 </script>
 
-<a
-    class="card {data?.species && `bg-${data?.species.color.name}`}"
-    class:active
-    class:selected
-    class:skeleton={!data}
-    on:mouseenter={startTilt}
-    on:mousemove={updateTilt}
-    on:mouseleave={resetTilt}
-    href={data?.pokemon?.id ? `/#/pokemon/${data.pokemon.id}` : null}
-    style="left: {cardLeft}px; top: {cardTop}px;"
+<span
+    style="position: absolute; left: {cardLeft}px; top: {cardTop}px;"
+    class="card"
     in:fly={{
         y: 50,
         duration: 250,
@@ -107,46 +91,70 @@
         selected,
     }}
 >
-    {#if !data}
-        <div
-            class="skeleton-wrapper"
+    {#await dataPromise}
+        <span class="card skeleton">
+            <div
+                class="skeleton-wrapper"
+                transition:fade={{ duration: 150, easing: quartOut }}
+            >
+                <div class="type-tags" />
+                <p class="number text-faded">
+                    <SkeletonText effect="pulse">00000</SkeletonText>
+                </p>
+                <h3 class="name center-content">
+                    <SkeletonBlock effect="pulse" width="85%">
+                        <SkeletonText tag="h3" effect="pulse"
+                            >00000</SkeletonText
+                        >
+                    </SkeletonBlock>
+                </h3>
+                <div class="body">
+                    <SkeletonBlock width="75%" height="75%" effect="pulse" />
+                </div>
+            </div>
+        </span>
+    {:then [pokemon, species]}
+        <a
+            class="card bg-{species.color.name}"
+            class:active
+            class:selected
+            on:mouseenter={startTilt}
+            on:mousemove={updateTilt}
+            on:mouseleave={resetTilt}
+            href="/#/pokemon/{pokemon.id}"
             transition:fade={{ duration: 150, easing: quartOut }}
         >
-            <div class="type-tags" />
-            <p class="number text-faded">
-                <SkeletonText effect="pulse">00000</SkeletonText>
-            </p>
-            <h3 class="name center-content">
-                <SkeletonBlock effect="pulse" width="85%">
-                    <SkeletonText tag="h3" effect="pulse">00000</SkeletonText>
-                </SkeletonBlock>
-            </h3>
+            <div class="type-tags">
+                {#each getTypes(pokemon) as type}
+                    <span class="type-tag">
+                        <TypeIcon {type} iconStyle="circle" />
+                    </span>
+                {/each}
+            </div>
+            <small class="number"># {getNationalId(species)}</small>
+            <h4 class="name">{capitalize(species.name)}</h4>
             <div class="body">
-                <SkeletonBlock width="75%" height="75%" effect="pulse" />
+                <img
+                    src={pokemon.sprites.front_default}
+                    alt=""
+                    in:receive|local={{ key: "pokeImg" }}
+                    out:send|local={{ key: "pokeImg" }}
+                    height="96"
+                    width="96"
+                />
+            </div>
+        </a>
+    {:catch err}
+        <div class="card skeleton error">
+            <div
+                class="skeleton-wrapper"
+                transition:fade={{ duration: 150, easing: quartOut }}
+            >
+                <p>There was an error loading this Pokemon</p>
             </div>
         </div>
-    {:else}
-        <div class="type-tags">
-            {#each getTypes(data.pokemon) as type}
-                <span class="type-tag">
-                    <TypeIcon {type} iconStyle="circle" />
-                </span>
-            {/each}
-        </div>
-        <small class="number"># {getNationalId(data.species)}</small>
-        <h4 class="name">{capitalize(data.species.name)}</h4>
-        <div class="body">
-            <img
-                src={data.pokemon.sprites.front_default}
-                alt=""
-                in:receive|local={{ key: "pokeImg" }}
-                out:send|local={{ key: "pokeImg" }}
-                height="96"
-                width="96"
-            />
-        </div>
-    {/if}
-</a>
+    {/await}
+</span>
 
 <style lang="scss">
     .card {
@@ -173,6 +181,11 @@
 
         &.skeleton {
             background: #6b6b6b;
+            cursor: auto;
+        }
+        &.error {
+            text-align: center;
+            color: #f3e8e8;
         }
 
         &.active {
@@ -248,7 +261,7 @@
             }
 
             &::before {
-                background-image: url("../assets/1x/pokeball.png");
+                background-image: url("/assets/1x/pokeball.png");
                 background-position: center;
                 background-size: cover;
             }
