@@ -29,8 +29,8 @@
         <p>
             Content is up to date with gen VII (Sun/Moon); gen VIII and onwards
             should be available whenever PokeAPI gets access to new data, with
-            the app (hopefully) updating automatically (as long as we get no new
-            types, otherwise I'll need to add more icons).
+            the app (hopefully) updating automatically with each new game (as
+            long as we get no new types, otherwise I'll need to add more icons).
         </p>
         <br />
 
