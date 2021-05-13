@@ -76,7 +76,6 @@
 
 <span
     style="position: absolute; left: {cardLeft}px; top: {cardTop}px;"
-    class="card"
     in:fly={{
         y: 50,
         duration: 250,
@@ -167,8 +166,7 @@
         flex-direction: column;
         padding: 5px;
 
-        // background: rgba(255, 255, 255, 0.25);
-        box-shadow: 0 8px 20px 0 rgba(135, 31, 113, 0.37);
+        box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.25);
         border-radius: 5px;
         font-weight: bold;
         transition: transform 0.2s ease-out;
