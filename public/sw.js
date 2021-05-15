@@ -1,7 +1,7 @@
 const imgRe = /https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/[\/-\w\d]+\/[\d\w-]+\.(?:png|svg|gif)/;
 const dataRe = /https:\/\/pokeapi\.co\/api\/v2\/.*/;
 const gamesRe = /https:\/\/pokeapi\.co\/api\/v2\/version/;
-const version = 1;
+const version = 2;
 
 const pokeApiDataCache = `pokeapi-data`;
 const pokeApiImgCache = `pokeapi-imgs`;

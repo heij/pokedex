@@ -706,6 +706,7 @@
                 pointer-events: none;
                 opacity: 0;
                 transition: opacity 0.2s ease-out;
+                border-radius: 10px;
             }
         }
 
